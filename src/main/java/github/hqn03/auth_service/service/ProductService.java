@@ -1,0 +1,89 @@
+package github.hqn03.auth_service.service;
+
+import github.hqn03.auth_service.dto.category.CategoryDTO;
+import github.hqn03.auth_service.dto.product.ProductDetailResponse;
+import github.hqn03.auth_service.dto.product.ProductResponse;
+import github.hqn03.auth_service.dto.product.ProductRequest;
+import github.hqn03.auth_service.exception.AppException;
+import github.hqn03.auth_service.exception.ResourceNotFoundException;
+import github.hqn03.auth_service.mapper.ProductMapper;
+import github.hqn03.auth_service.model.Category;
+import github.hqn03.auth_service.model.Product;
+import github.hqn03.auth_service.repository.CategoryRepository;
+import github.hqn03.auth_service.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductMapper productMapper;
+
+    @Transactional
+    public ProductDetailResponse createProduct(ProductRequest productRequest) {
+        Product product = productMapper.toEntity(productRequest);
+
+        if (productRepository.existsBySlug(productRequest.slug())) {
+            throw new AppException("Slug already existed", HttpStatus.BAD_REQUEST);
+        }
+
+        Category category = categoryRepository.findById(productRequest.categoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category id is not found."));
+        product.setCategory(category);
+
+        Product saved = productRepository.save(product);
+
+        return productMapper.toProductDetailResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getProducts() {
+        return productMapper.toListResponses(productRepository.findAll());
+    }
+
+    @Transactional(readOnly = true)
+    public ProductDetailResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product id is not found."));
+
+        return productMapper.toProductDetailResponse(product);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductDetailResponse getProductBySlug(String slug) {
+        Product product = productRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Product slug is not found."));
+
+        return productMapper.toProductDetailResponse(product);
+    }
+
+    @Transactional
+    public ProductDetailResponse updateProduct(Long id, ProductRequest productRequest) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product id is not found."));
+
+        productMapper.updateEntityFromRequest(productRequest, product);
+
+        if (productRequest.categoryId() != null) {
+            Category category = categoryRepository.findById(productRequest.categoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category is not found."));
+            product.setCategory(category);
+        }
+
+        return  productMapper.toProductDetailResponse(productRepository.save(product));
+    }
+
+    @Transactional
+    public void deleteProduct(Long id){
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product id is not found."));
+
+        productRepository.delete(product);
+    }
+}
