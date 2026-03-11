@@ -19,8 +19,8 @@ public class ColorController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('COLOR:CREATE')")
-    public ColorResponse createColor(@RequestBody ColorRequest colorRequest) {
-        return colorService.createColor(colorRequest);
+    public ColorResponse createColor(@RequestBody ColorRequest request) {
+        return colorService.createColor(request);
     }
 
     @GetMapping
@@ -40,8 +40,8 @@ public class ColorController {
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('COLOR:UPDATE')")
-    public ColorResponse updateColor(@PathVariable int id, @RequestBody ColorRequest colorRequest) {
-        return colorService.updateColor(id, colorRequest);
+    public ColorResponse updateColor(@PathVariable int id, @RequestBody ColorRequest request) {
+        return colorService.updateColor(id, request);
     }
 
     @DeleteMapping("/{id}")
