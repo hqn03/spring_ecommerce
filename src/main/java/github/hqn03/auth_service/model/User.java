@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.DialectOverride;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -21,17 +22,17 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
-@SQLRestriction("deleted_at IS NULL")
-@SQLDelete(sql = "UPDATE users SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at = 0")
+@SQLDelete(sql = "UPDATE users SET deleted_at = UNIX_TIMESTAMP(NOW(3)) * 1000 WHERE id = ?")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String username;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String email;
 
     @Column(unique = false, nullable = false)
@@ -44,6 +45,7 @@ public class User implements UserDetails {
     private boolean blocked = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @BatchSize(size=20)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false)
@@ -56,8 +58,8 @@ public class User implements UserDetails {
     @Column(name="updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    @Column(name = "deleted_at", nullable = false)
+    private Long deletedAt = 0L;
 
     @PreUpdate
     public void onUpdate() {

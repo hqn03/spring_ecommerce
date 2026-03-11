@@ -6,6 +6,7 @@ import github.hqn03.auth_service.dto.auth.RegisterRequest;
 import github.hqn03.auth_service.dto.auth.RegisterResponse;
 import github.hqn03.auth_service.exception.AppException;
 import github.hqn03.auth_service.exception.ResourceNotFoundException;
+import github.hqn03.auth_service.mapper.UserMapper;
 import github.hqn03.auth_service.model.EmailVerificationToken;
 import github.hqn03.auth_service.model.Role;
 import github.hqn03.auth_service.model.User;
@@ -48,6 +49,8 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
+    private final UserMapper userMapper;
+
 
 
     @NonFinal
@@ -63,14 +66,11 @@ public class AuthService {
             throw new AppException("Email is existed", HttpStatus.BAD_REQUEST);
         }
 
-        User user = new User();
-        user.setUsername(registerRequest.username());
-        user.setEmail(registerRequest.email());
+        User user = userMapper.toEntity(registerRequest);
         user.setPassword(passwordEncoder.encode(registerRequest.password()));
 
         Role userRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new ResourceNotFoundException("User role is not found!"));
-
         user.addRole(userRole);
 
         User saved = userRepository.save(user);

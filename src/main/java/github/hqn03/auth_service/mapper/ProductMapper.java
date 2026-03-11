@@ -9,6 +9,7 @@ import github.hqn03.auth_service.model.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 
 import java.util.List;
 
@@ -29,10 +30,10 @@ public interface ProductMapper {
 
     ProductDetailResponse toProductDetailResponse(Product product);
 
+    @Mapping(target = "category", source = "category", qualifiedByName = "toCategoryDTO")
     List<ProductResponse> toListResponses(List<Product> products);
 
-
-
+    @Named("toCategoryDTO")
     default CategoryDTO toCategoryDTO(Category category) {
         if(category == null) return null;
         return new CategoryDTO(category.getSlug(), category.getName());

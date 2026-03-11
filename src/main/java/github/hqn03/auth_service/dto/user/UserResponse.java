@@ -9,6 +9,5 @@ public record UserResponse(
         Long id,
         String username,
         String email,
-        Set<String> roles,
-        Set<String> permissions) {
+        Set<String> roles) {
 }
