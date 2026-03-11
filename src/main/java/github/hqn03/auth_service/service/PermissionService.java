@@ -8,13 +8,20 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class PermissionService {
     private final PermissionRepository permissionRepository;
+
+    @Transactional(readOnly = true)
+    Set<Permission> findAllByIds(Set<Integer> ids) {
+        return new HashSet<>(permissionRepository.findAllById(ids));
+    }
 
     @Transactional(readOnly = true)
     @Cacheable(value = "permissions")

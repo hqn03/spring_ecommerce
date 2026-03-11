@@ -46,15 +46,10 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
     private final UserMapper userMapper;
-
-
-
-    @NonFinal
-    protected static String SECRET_KEY = "YwMMyYEYNA6CMEl7lWcVQAd5sQ/U2wiDOG4VU+ZU0RQ=";
+    private final RoleService roleService;
 
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
@@ -69,8 +64,7 @@ public class AuthService {
         User user = userMapper.toEntity(registerRequest);
         user.setPassword(passwordEncoder.encode(registerRequest.password()));
 
-        Role userRole = roleRepository.findByName("USER")
-                .orElseThrow(() -> new ResourceNotFoundException("User role is not found!"));
+        Role userRole = roleService.getUserRole();
         user.addRole(userRole);
 
         User saved = userRepository.save(user);

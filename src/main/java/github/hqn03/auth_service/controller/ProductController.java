@@ -31,7 +31,7 @@ public class ProductController {
         return productService.getProducts();
     }
 
-    @GetMapping("/id/{id:\\d+}")
+    @GetMapping("/id/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:READ')")
     public ProductDetailResponse getProductById(@PathVariable Long id){
@@ -47,16 +47,21 @@ public class ProductController {
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('PRODUCT:READ')")
+    @PreAuthorize("hasAuthority('PRODUCT:UPDATE')")
     public ProductDetailResponse updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest){
         return productService.updateProduct(id, productRequest);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('PRODUCT:READ')")
+    @PreAuthorize("hasAuthority('PRODUCT:DELETE')")
     public String deleteProduct(@PathVariable Long id){
         productService.deleteProduct(id);
         return "Delete product successfully";
     }
+
+    @PostMapping("/{id}/sku")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('PRODUCT:UPDATE')")
+    public
 }

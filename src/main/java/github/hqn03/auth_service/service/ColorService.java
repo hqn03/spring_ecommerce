@@ -19,6 +19,12 @@ public class ColorService {
     private final ColorRepository colorRepository;
     private final ColorMapper colorMapper;
 
+    @Transactional(readOnly = true)
+    public Color findById(Integer id){
+        return colorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Color id " + id + " not found"));
+    }
+
     @Transactional
     public ColorResponse createColor(ColorRequest request) {
         Color color = colorMapper.toEntity(request);
@@ -35,17 +41,14 @@ public class ColorService {
     }
 
     @Transactional(readOnly = true)
-    public ColorResponse getColorById(int id) {
-        Color color = colorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Color id not found"));
-
+    public ColorResponse getColorById(Integer id) {
+        Color color = this.findById(id);
         return colorMapper.toColorResponse(color);
     }
 
     @Transactional
-    public ColorResponse updateColor(int id,  ColorRequest request) {
-        Color color = colorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Color id not found"));
+    public ColorResponse updateColor(Integer id,  ColorRequest request) {
+        Color color = this.findById(id);
 
         colorMapper.updateColorFromRequest(request, color);
         Color updated = colorRepository.save(color);
@@ -53,10 +56,8 @@ public class ColorService {
     }
 
     @Transactional
-    public void deleteColor(int id) {
-        Color color = colorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Color id not found"));
-
+    public void deleteColor(Integer id) {
+        Color color = this.findById(id);
         colorRepository.delete(color);
     }
 }

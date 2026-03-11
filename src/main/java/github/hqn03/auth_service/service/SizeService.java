@@ -9,6 +9,7 @@ import github.hqn03.auth_service.repository.SizeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -17,6 +18,12 @@ import java.util.List;
 public class SizeService {
     private final SizeRepository sizeRepository;
     private final SizeMapper sizeMapper;
+
+    @Transactional(readOnly = true)
+    public Size findById(Integer id){
+        return sizeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Size id "+ id + " not found"));
+    }
 
     @Transactional
     public SizeResponse createSize(SizeRequest request) {
@@ -36,16 +43,14 @@ public class SizeService {
 
     @Transactional(readOnly = true)
     public SizeResponse getSizeById(int id) {
-        Size size = sizeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Size id not found"));
+        Size size = this.findById(id);
 
         return sizeMapper.toSizeResponse(size);
     }
 
     @Transactional
     public SizeResponse updateSize(int id,SizeRequest request) {
-        Size size = sizeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Size id not found"));
+        Size size = this.findById(id);
 
         sizeMapper.updateSize(request, size);
         Size updated = sizeRepository.save(size);
@@ -55,8 +60,7 @@ public class SizeService {
 
     @Transactional
     public void deleteSize(int id) {
-        Size size = sizeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Size id not found"));
+        Size size = this.findById(id);
 
         sizeRepository.delete(size);
     }

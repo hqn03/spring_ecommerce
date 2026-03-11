@@ -21,6 +21,12 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
+    @Transactional(readOnly = true)
+    public Category findById(Integer id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category id " + id + " is not found."));
+    }
+
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
         Category category = categoryMapper.toEntity(request);
@@ -48,16 +54,14 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Integer id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category id not found"));
+        Category category = this.findById(id);
 
         return categoryMapper.toCategoryResponse(category);
     }
 
     @Transactional
     public CategoryResponse updateCategory(Integer id, CategoryRequest request) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category id not found"));
+        Category category = this.findById(id);
 
         categoryMapper.updateCategory(request, category);
 
@@ -70,10 +74,9 @@ public class CategoryService {
                     throw new AppException("A category cannot be its own parent category.", HttpStatus.BAD_REQUEST);
                 }
 
-                Category newParent = categoryRepository.findById(newParentId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Parent category id not found: " + request.parentId()));
+                Category newParent = this.findById(newParentId);
 
-                if (isChildOf(newParent, category)){
+                if (this.isChildOf(newParent, category)){
                     throw new AppException("Cannot select child category as parent category.",  HttpStatus.BAD_REQUEST);
                 }
 
@@ -91,8 +94,7 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(int id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category id not found"));
+        Category category = this.findById(id);
 
         categoryRepository.delete(category);
     }

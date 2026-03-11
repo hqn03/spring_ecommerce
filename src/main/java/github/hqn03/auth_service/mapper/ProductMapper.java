@@ -6,20 +6,12 @@ import github.hqn03.auth_service.dto.product.ProductResponse;
 import github.hqn03.auth_service.dto.product.ProductRequest;
 import github.hqn03.auth_service.model.Category;
 import github.hqn03.auth_service.model.Product;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 
-import java.util.List;
-
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {SkuMapper.class})
 public interface ProductMapper {
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "category.id", source = "categoryId")
     Product toEntity(ProductRequest productRequest);
 
     @Mapping(target = "id", ignore = true)
@@ -30,12 +22,16 @@ public interface ProductMapper {
 
     ProductDetailResponse toProductDetailResponse(Product product);
 
-    @Mapping(target = "category", source = "category", qualifiedByName = "toCategoryDTO")
-    List<ProductResponse> toListResponses(List<Product> products);
-
     @Named("toCategoryDTO")
     default CategoryDTO toCategoryDTO(Category category) {
         if(category == null) return null;
         return new CategoryDTO(category.getId(), category.getSlug(), category.getName());
+    }
+
+    @AfterMapping
+    default void linkSkus(@MappingTarget Product product) {
+        if (product.getSkus() != null) {
+            product.getSkus().forEach(sku -> sku.setProduct(product));
+        }
     }
 }

@@ -26,8 +26,24 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoleService {
     private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
     private final RoleMapper roleMapper;
+    private final PermissionService permissionService;
+
+    @Transactional(readOnly = true)
+    public Role findById(Integer id){
+        return roleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Role id " + id + " not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public Set<Role> findAllByIds(Set<Integer> roleIds) {
+        return new HashSet<>(roleRepository.findAllById(roleIds));
+    }
+
+    @Transactional(readOnly = true)
+    public Role getUserRole(){
+        return roleRepository.findByName("USER").orElseThrow(() ->  new ResourceNotFoundException("Role not found"));
+    }
 
     public List<RoleResponse> getAll(){
         return roleRepository.findAll()
@@ -36,10 +52,9 @@ public class RoleService {
                 .toList();
     }
 
-    public RoleDetailResponse getRole(Long id){
-        Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Role Not Found"));
-
+    @Transactional(readOnly = true)
+    public RoleDetailResponse getRole(Integer id){
+        Role role = this.findById(id);
         return roleMapper.toRoleDetailResponse(role);
     }
 
@@ -51,9 +66,7 @@ public class RoleService {
         Role role = roleMapper.toEntity(request);
 
         if (request.permissionIds() != null && !request.permissionIds().isEmpty()) {
-            Set<Permission> permissions = new HashSet<>(
-                    permissionRepository.findAllById(request.permissionIds())
-            );
+            Set<Permission> permissions = permissionService.findAllByIds(request.permissionIds());
             // Kiểm tra tính hợp lệ của ID
             if (permissions.size() != request.permissionIds().size()) {
                 throw new ResourceNotFoundException("Some permission IDs are invalid");
@@ -65,14 +78,13 @@ public class RoleService {
     }
 
     @Transactional
-    public RoleDetailResponse updateRole(Long id, RoleRequest request){
-        Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Role Not Found"));
+    public RoleDetailResponse updateRole(Integer id, RoleRequest request){
+        Role role = this.findById(id);
 
         roleMapper.updateRoleFromRequest(request, role);
 
         if(request.permissionIds() != null){
-            Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(request.permissionIds()));
+            Set<Permission> permissions = permissionService.findAllByIds(request.permissionIds());
             if(permissions.size() != request.permissionIds().size()){
                 throw new ResourceNotFoundException("Some permission IDs are invalid");
             }
@@ -83,9 +95,9 @@ public class RoleService {
         return roleMapper.toRoleDetailResponse(updated);
     }
 
-    public String deleteRole(Long id){
-        Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Role Not Found"));
+    @Transactional
+    public String deleteRole(Integer id){
+        Role role = this.findById(id);
 
         roleRepository.delete(role);
         return "Role Deleted Successfully";

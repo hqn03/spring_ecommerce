@@ -23,7 +23,7 @@ public class RoleController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RoleDetailResponse getRole(@PathVariable Long id){
+    public RoleDetailResponse getRole(@PathVariable Integer id){
         return roleService.getRole(id);
     }
 
@@ -35,13 +35,13 @@ public class RoleController {
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RoleDetailResponse updateRole(@PathVariable Long id, @RequestBody RoleRequest roleRequest){
+    public RoleDetailResponse updateRole(@PathVariable Integer id, @RequestBody RoleRequest roleRequest){
         return roleService.updateRole(id, roleRequest);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public String deleteRole(@PathVariable Long id){
+    public String deleteRole(@PathVariable Integer id){
         return roleService.deleteRole(id);
     }
 }

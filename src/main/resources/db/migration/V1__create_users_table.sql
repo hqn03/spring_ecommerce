@@ -12,5 +12,5 @@ CREATE TABLE users
 
     CONSTRAINT unique_username_deleted UNIQUE (username, deleted_at),
     CONSTRAINT unique_email_deleted UNIQUE (email, deleted_at)
-)
+);
 

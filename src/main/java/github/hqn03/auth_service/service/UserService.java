@@ -40,9 +40,15 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roleRepository;
     private final SecurityService securityService;
     private final UserMapper userMapper;
+    private final RoleService roleService;
+
+    @Transactional(readOnly = true)
+    public User findById(Long id){
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found"));
+    }
 
     @Transactional
     public UserResponse createUser(CreateUserRequest createUserRequest) {
@@ -52,18 +58,17 @@ public class UserService {
         }
 
         String adminUsername = securityService.getUsername();
-        Set<Role> roles = new HashSet<>(roleRepository.findAllById(createUserRequest.roleIds()));
-        validateRoleAssignment(roles);
+        Set<Role> roles = roleService.findAllByIds(createUserRequest.roleIds());
+        this.validateRoleAssignment(roles);
 
         User user = userMapper.toEntity(createUserRequest);
         user.setPassword(passwordEncoder.encode(createUserRequest.password()));
 
         if(roles.isEmpty()) {
-            roles.add(roleRepository.findByName("USER")
-                    .orElseThrow(() -> new ResourceNotFoundException("Role not found")));
+            roles.add(roleService.getUserRole());
         }
-
         user.setRoles(roles);
+
         User saved = userRepository.save(user);
 
         Set<String> rolesName = roles.stream()
@@ -94,8 +99,7 @@ public class UserService {
     public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
         String adminUsername = securityService.getUsername();
 
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = findById(id);
 
         if (!user.getUsername().equals(updateUserRequest.username()) && userRepository.existsByUsername(updateUserRequest.username())) {
             throw new AppException("Username already existed", HttpStatus.BAD_REQUEST);
@@ -107,7 +111,7 @@ public class UserService {
         userMapper.updateUserFromRequest(updateUserRequest, user);
 
         if (updateUserRequest.roleIds() != null && !updateUserRequest.roleIds().isEmpty()) {
-            Set<Role> roles = new HashSet<>(roleRepository.findAllById(updateUserRequest.roleIds()));
+            Set<Role> roles = roleService.findAllByIds(updateUserRequest.roleIds());
             validateRoleAssignment(roles);
             user.setRoles(roles);
         }
@@ -120,16 +124,12 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id  ){
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
+        User user = this.findById(id);
         userRepository.delete(user);
     }
 
     private void validateRoleAssignment(Set<Role> targetRoles){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isSuperAdmin = securityService.isSuperAdmin();
-        if(!isSuperAdmin){
+        if(!securityService.isSuperAdmin()){
             boolean hasHighLevelRole = targetRoles.stream()
                     .anyMatch(r -> r.getName().equals("ADMIN") || r.getName().equals("SUPER_ADMIN"));
             if(hasHighLevelRole) {

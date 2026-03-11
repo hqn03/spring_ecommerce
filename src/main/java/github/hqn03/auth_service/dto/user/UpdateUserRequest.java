@@ -5,5 +5,5 @@ import java.util.Set;
 public record UpdateUserRequest(
         String username,
         String email,
-        Set<Long> roleIds) {
+        Set<Integer> roleIds) {
 }

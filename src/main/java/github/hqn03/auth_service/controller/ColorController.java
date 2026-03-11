@@ -33,21 +33,21 @@ public class ColorController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('COLOR:READ')")
-    public ColorResponse getColorById(@PathVariable int id) {
+    public ColorResponse getColorById(@PathVariable Integer id) {
         return colorService.getColorById(id);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('COLOR:UPDATE')")
-    public ColorResponse updateColor(@PathVariable int id, @RequestBody ColorRequest request) {
+    public ColorResponse updateColor(@PathVariable Integer id, @RequestBody ColorRequest request) {
         return colorService.updateColor(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('COLOR:DELETE')")
-    public String deleteColor(@PathVariable int id) {
+    public String deleteColor(@PathVariable Integer id) {
         colorService.deleteColor(id);
         return "Delete color successfully";
     }

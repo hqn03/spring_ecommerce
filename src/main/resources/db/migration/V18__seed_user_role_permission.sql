@@ -7,7 +7,24 @@ INSERT INTO permissions (name, description) VALUES
 ('ROLE:READ', 'View role'),
 ('ROLE:UPDATE', 'Update role'),
 ('ROLE:DELETE', 'Delete role'),
-('ROLE:ASSIGN_PERMISSION', 'Assign permission to role');
+('ROLE:ASSIGN_PERMISSION', 'Assign permission to role'),
+('COLOR:CREATE', 'Create color'),
+('COLOR:READ', 'View color'),
+('COLOR:UPDATE', 'Update color'),
+('COLOR:DELETE', 'Delete color'),
+('SIZE:CREATE', 'Create size'),
+('SIZE:READ', 'View size'),
+('SIZE:UPDATE', 'Update size'),
+('SIZE:DELETE', 'Delete size'),
+('CATEGORY:CREATE', 'Create category'),
+('CATEGORY:READ', 'View category'),
+('CATEGORY:UPDATE', 'Update category'),
+('CATEGORY:DELETE', 'Delete category'),
+('PRODUCT:CREATE', 'Create product'),
+('PRODUCT:READ', 'View product'),
+('PRODUCT:UPDATE', 'Update product'),
+('PRODUCT:DELETE', 'Delete product');
+
 
 INSERT INTO roles (name, description) VALUES
 ('SUPER_ADMIN', 'System super administrator'),
@@ -70,3 +87,38 @@ SELECT u.id, r.id
 FROM users u
          JOIN roles r ON r.name = 'USER'
 WHERE u.username NOT IN ('admin', 'superadmin');
+
+INSERT INTO colors (name, hex_code)
+VALUES ('Black', '#000000'),
+       ('White', '#FFFFFF'),
+       ('Light Gray', '#D3D3D3'),
+       ('Dark Gray', '#404040'),
+       ('Red', '#FF0000'),
+       ('Gray', '#808080'),
+       ('Dark Red', '#8B0000'),
+       ('Crimson', '#DC143C'),
+       ('Blue', '#0000FF'),
+       ('Navy', '#000080'),
+       ('Sky Blue', '#87CEEB'),
+       ('Light Blue', '#ADD8E6'),
+       ('Green', '#008000'),
+       ('Dark Green', '#006400'),
+       ('Lime', '#32CD32'),
+       ('Olive', '#808000'),
+       ('Yellow', '#FFFF00'),
+       ('Gold', '#FFD700'),
+       ('Mustard', '#FFDB58'),
+       ('Orange', '#FFA500'),
+       ('Coral', '#FF7F50'),
+       ('Pink', '#FFC0CB'),
+       ('Hot Pink', '#FF69B4'),
+       ('Purple', '#800080'),
+       ('Lavender', '#E6E6FA'),
+       ('Violet', '#8F00FF'),
+       ('Brown', '#8B4513'),
+       ('Chocolate', '#7B3F00'),
+       ('Beige', '#F5F5DC'),
+       ('Khaki', '#F0E68C'),
+       ('Cyan', '#00FFFF'),
+       ('Turquoise', '#40E0D0'),
+       ('Teal', '#008080')

@@ -7,6 +7,6 @@ import java.util.Set;
 public record RoleRequest(
         @NotBlank String name,
         String description,
-        Set<Long> permissionIds
+        Set<Integer> permissionIds
 ) {
 }
