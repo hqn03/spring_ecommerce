@@ -19,8 +19,8 @@ public class CategoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('CATEGORY:CREATE')")
-    public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest){
-        return categoryService.createCategory(categoryRequest);
+    public CategoryResponse createCategory(@RequestBody CategoryRequest request){
+        return categoryService.createCategory(request);
     }
 
     @GetMapping
@@ -40,8 +40,8 @@ public class CategoryController {
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('CATEGORY:READ')")
-    public CategoryResponse updateCategory(@PathVariable int id, @RequestBody CategoryRequest categoryRequest){
-        return categoryService.updateCategory(id, categoryRequest);
+    public CategoryResponse updateCategory(@PathVariable int id, @RequestBody CategoryRequest request){
+        return categoryService.updateCategory(id, request);
     }
 
     @DeleteMapping("/{id}")

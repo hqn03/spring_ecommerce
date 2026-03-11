@@ -4,6 +4,7 @@ import github.hqn03.auth_service.dto.category.CategoryRequest;
 import github.hqn03.auth_service.dto.category.CategoryResponse;
 import github.hqn03.auth_service.exception.AppException;
 import github.hqn03.auth_service.exception.ResourceNotFoundException;
+import github.hqn03.auth_service.mapper.CategoryMapper;
 import github.hqn03.auth_service.model.Category;
 import github.hqn03.auth_service.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,37 +19,30 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
     @Transactional
-    public CategoryResponse createCategory(CategoryRequest categoryRequest) {
-        Category category = new Category();
+    public CategoryResponse createCategory(CategoryRequest request) {
+        Category category = categoryMapper.toEntity(request);
 
-        category.setName(categoryRequest.name());
-        category.setSlug(categoryRequest.slug());
-        category.setDescription(categoryRequest.description());
-
-        if (categoryRequest.parentId() != null) {
-            Category parentCategory = categoryRepository.findById(categoryRequest.parentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Parent category id not found: " + categoryRequest.parentId()));
+        if (request.parentId() != null) {
+            Category parentCategory = categoryRepository.findById(request.parentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent category id not found: " + request.parentId()));
             category.setParent(parentCategory);
         } else {
             category.setParent(null);
         }
 
         Category saved = categoryRepository.save(category);
-        Integer parentId = saved.getParent() != null ? saved.getParent().getId() : null;
 
-        return new CategoryResponse(saved.getId(), saved.getName(), saved.getSlug(), saved.getDescription(), parentId);
+        return categoryMapper.toCategoryResponse(saved);
     }
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getCategories() {
         return categoryRepository.findAll()
                 .stream()
-                .map(category -> {
-                    Integer parentId = category.getParent() != null ? category.getParent().getId() : null;
-                    return new CategoryResponse(category.getId(), category.getName(), category.getSlug(), category.getDescription(), parentId);
-                })
+                .map(categoryMapper::toCategoryResponse)
                 .toList();
     }
 
@@ -56,22 +50,19 @@ public class CategoryService {
     public CategoryResponse getCategoryById(Integer id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category id not found"));
-        Integer parentId = category.getParent() != null ? category.getParent().getId() : null;
 
-        return new CategoryResponse(category.getId(), category.getName(), category.getSlug(), category.getDescription(), parentId);
+        return categoryMapper.toCategoryResponse(category);
     }
 
     @Transactional
-    public CategoryResponse updateCategory(Integer id, CategoryRequest categoryRequest) {
+    public CategoryResponse updateCategory(Integer id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category id not found"));
 
-        category.setName(categoryRequest.name());
-        category.setSlug(categoryRequest.slug());
-        category.setDescription(categoryRequest.description());
+        categoryMapper.updateCategory(request, category);
 
         Integer currentParentId = (category.getParent() != null) ? category.getParent().getId() : null;
-        Integer newParentId = categoryRequest.parentId();
+        Integer newParentId = request.parentId();
 
         if(!Objects.equals(currentParentId, newParentId)) {
             if(newParentId != null){
@@ -80,7 +71,7 @@ public class CategoryService {
                 }
 
                 Category newParent = categoryRepository.findById(newParentId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Parent category id not found: " + categoryRequest.parentId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("Parent category id not found: " + request.parentId()));
 
                 if (isChildOf(newParent, category)){
                     throw new AppException("Cannot select child category as parent category.",  HttpStatus.BAD_REQUEST);
@@ -94,9 +85,8 @@ public class CategoryService {
         }
 
         Category updated = categoryRepository.save(category);
-        Integer parentId = updated.getParent() != null ? updated.getParent().getId() : null;
 
-        return new CategoryResponse(updated.getId(), updated.getName(), updated.getSlug(), updated.getDescription(), parentId);
+        return categoryMapper.toCategoryResponse(updated);
     }
 
     @Transactional

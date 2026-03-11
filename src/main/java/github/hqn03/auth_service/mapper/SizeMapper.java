@@ -6,7 +6,7 @@ import github.hqn03.auth_service.model.Size;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface SizeMapper {
 
     Size toEntity(SizeRequest request);

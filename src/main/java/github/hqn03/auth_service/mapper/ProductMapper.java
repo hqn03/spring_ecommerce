@@ -36,6 +36,6 @@ public interface ProductMapper {
     @Named("toCategoryDTO")
     default CategoryDTO toCategoryDTO(Category category) {
         if(category == null) return null;
-        return new CategoryDTO(category.getSlug(), category.getName());
+        return new CategoryDTO(category.getId(), category.getSlug(), category.getName());
     }
 }
