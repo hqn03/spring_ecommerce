@@ -20,8 +20,8 @@ public class SizeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('SIZE:CREATE')")
-    public SizeResponse createSize(@RequestBody SizeRequest sizeRequest){
-        return sizeService.createSize(sizeRequest);
+    public SizeResponse createSize(@RequestBody SizeRequest request){
+        return sizeService.createSize(request);
     }
 
     @GetMapping
@@ -41,8 +41,8 @@ public class SizeController {
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('SIZE:READ')")
-    public SizeResponse updateSize(@PathVariable int id, @RequestBody SizeRequest sizeRequest){
-        return sizeService.updateSize(id, sizeRequest);
+    public SizeResponse updateSize(@PathVariable int id, @RequestBody SizeRequest request){
+        return sizeService.updateSize(id, request);
     }
 
     @DeleteMapping("/{id}")
