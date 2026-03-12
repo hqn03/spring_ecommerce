@@ -17,11 +17,11 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
 
-    @Transactional(readOnly = true)
     public Category findById(Integer id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category id " + id + " is not found."));
@@ -44,7 +44,6 @@ public class CategoryService {
         return categoryMapper.toCategoryResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public List<CategoryResponse> getCategories() {
         return categoryRepository.findAll()
                 .stream()
@@ -52,7 +51,6 @@ public class CategoryService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Integer id) {
         Category category = this.findById(id);
 

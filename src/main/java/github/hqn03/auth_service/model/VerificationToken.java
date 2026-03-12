@@ -8,11 +8,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "email_verification_tokens")
+@Table(name = "verification_tokens")
 @NoArgsConstructor
 @Getter
 @Setter
-public class EmailVerificationToken {
+public class VerificationToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

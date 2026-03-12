@@ -28,7 +28,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_CREATE + "')")
+    @PreAuthorize("hasAuthority('USER:CREATE')")
     public UserResponse createUser(@RequestBody CreateUserRequest createUserRequest) {
         return userService.createUser(createUserRequest);
     }

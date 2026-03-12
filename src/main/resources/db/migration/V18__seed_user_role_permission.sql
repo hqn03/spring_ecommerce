@@ -121,4 +121,24 @@ VALUES ('Black', '#000000'),
        ('Khaki', '#F0E68C'),
        ('Cyan', '#00FFFF'),
        ('Turquoise', '#40E0D0'),
-       ('Teal', '#008080')
+       ('Teal', '#008080');
+
+INSERT INTO categories (name, slug, description, parent_id)
+VALUES ('Men', 'men', 'Men fashion', NULL),
+       ('Women', 'women', 'Women fashion', NULL),
+       ('Kids', 'kids', 'Kids fashion', NULL),
+       ('Accessories', 'accessories', 'Fashion accessories', NULL);
+
+INSERT INTO categories (name, slug, description, parent_id)
+VALUES ('T-Shirts', 'men-tshirts', 'Men t-shirts', 1),
+       ('Shirts', 'men-shirts', 'Men shirts', 1),
+       ('Jeans', 'men-jeans', 'Men jeans', 1),
+       ('Dresses', 'women-dresses', 'Women dresses', 2),
+       ('Skirts', 'women-skirts', 'Women skirts', 2),
+       ('Blouses', 'women-blouses', 'Women blouses', 2),
+       ('Toys', 'kids-toys', 'Kids toys', 3),
+       ('Kids Clothing', 'kids-clothing', 'Kids clothing', 3),
+       ('Bags', 'bags', 'Fashion bags', 4),
+       ('Watches', 'watches', 'Wrist watches', 4),
+       ('Sunglasses', 'sunglasses', 'Fashion sunglasses', 4);
+

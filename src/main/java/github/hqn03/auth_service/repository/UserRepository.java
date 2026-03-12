@@ -23,6 +23,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsernameOrEmail(String username, String email);
 
     Optional<User> findByUsername (String username);
+    Optional<User> findByEmail(String email);
+
 
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})
     Optional<User> findWithRolePermissionById(Long id);
@@ -38,4 +40,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = "roles")
     @NonNull
     Optional<User> findById(@NonNull Long id);
+
 }

@@ -15,15 +15,14 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Log4j2
+@Transactional(readOnly = true)
 public class PermissionService {
     private final PermissionRepository permissionRepository;
 
-    @Transactional(readOnly = true)
     Set<Permission> findAllByIds(Set<Integer> ids) {
         return new HashSet<>(permissionRepository.findAllById(ids));
     }
 
-    @Transactional(readOnly = true)
     @Cacheable(value = "permissions")
     public List<Permission> getAll(){
         log.info("GET TO ALL PERMISSIONS");

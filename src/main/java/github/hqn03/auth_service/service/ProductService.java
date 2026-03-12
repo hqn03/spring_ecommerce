@@ -19,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
@@ -47,7 +48,6 @@ public class ProductService {
         return productMapper.toProductDetailResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public List<ProductResponse> getProducts() {
         return productRepository.findAll()
                 .stream()
@@ -55,13 +55,11 @@ public class ProductService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public ProductDetailResponse getProductById(Long id) {
         Product product = this.findById(id);
         return productMapper.toProductDetailResponse(product);
     }
 
-    @Transactional(readOnly = true)
     public ProductDetailResponse getProductBySlug(String slug) {
         Product product = productRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Product slug is not found."));

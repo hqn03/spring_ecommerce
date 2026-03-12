@@ -15,11 +15,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ColorService {
     private final ColorRepository colorRepository;
     private final ColorMapper colorMapper;
 
-    @Transactional(readOnly = true)
     public Color findById(Integer id){
         return colorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Color id " + id + " not found"));
@@ -32,7 +32,6 @@ public class ColorService {
         return colorMapper.toColorResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public List<ColorResponse> getColors() {
         return colorRepository.findAll()
                 .stream()
@@ -40,7 +39,6 @@ public class ColorService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public ColorResponse getColorById(Integer id) {
         Color color = this.findById(id);
         return colorMapper.toColorResponse(color);

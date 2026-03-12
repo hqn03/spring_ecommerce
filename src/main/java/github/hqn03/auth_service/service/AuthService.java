@@ -5,21 +5,16 @@ import github.hqn03.auth_service.dto.auth.LoginResponse;
 import github.hqn03.auth_service.dto.auth.RegisterRequest;
 import github.hqn03.auth_service.dto.auth.RegisterResponse;
 import github.hqn03.auth_service.exception.AppException;
-import github.hqn03.auth_service.exception.ResourceNotFoundException;
 import github.hqn03.auth_service.mapper.UserMapper;
-import github.hqn03.auth_service.model.EmailVerificationToken;
+import github.hqn03.auth_service.model.VerificationToken;
 import github.hqn03.auth_service.model.Role;
 import github.hqn03.auth_service.model.User;
-import github.hqn03.auth_service.repository.EmailVerificationTokenRepository;
-import github.hqn03.auth_service.repository.RoleRepository;
+import github.hqn03.auth_service.repository.VerificationTokenRepository;
 import github.hqn03.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,57 +25,32 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.security.auth.login.AccountLockedException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthService {
     private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
-    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;
-    private final UserMapper userMapper;
-    private final RoleService roleService;
+    private final TokenService tokenService;
+    private final UserService userService;
 
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
-        if(userRepository.existsByUsername(registerRequest.username())) {
-            throw new AppException("Username is existed", HttpStatus.BAD_REQUEST);
-        }
+        User user = userService.registerUser(registerRequest);
+        VerificationToken token = tokenService.generateVerificationToken(user);
 
-        if(userRepository.existsByEmail(registerRequest.email())) {
-            throw new AppException("Email is existed", HttpStatus.BAD_REQUEST);
-        }
-
-        User user = userMapper.toEntity(registerRequest);
-        user.setPassword(passwordEncoder.encode(registerRequest.password()));
-
-        Role userRole = roleService.getUserRole();
-        user.addRole(userRole);
-
-        User saved = userRepository.save(user);
-
-        // Generate token
-        String token = UUID.randomUUID().toString();
-        EmailVerificationToken emailVerificationToken = new EmailVerificationToken();
-        emailVerificationToken.setToken(token);
-        emailVerificationToken.setUser(saved);
-        emailVerificationToken.setExpiredAt(LocalDateTime.now().plusDays(1));
-        emailVerificationTokenRepository.save(emailVerificationToken);
+        //Call mailservice
 
         return new RegisterResponse("Registration successful. Please check your email to verify your account.");
     };
 
-    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest loginRequest) {
 
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -90,7 +60,6 @@ public class AuthService {
 
             Authentication authentication = authenticationManager.authenticate(authToken);
             User user = (User) authentication.getPrincipal();
-
             var token = generateToken(user);
 
             return new LoginResponse(token);
