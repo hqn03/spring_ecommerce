@@ -1,55 +1,72 @@
 package github.hqn03.auth_service.service;
 
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
 import github.hqn03.auth_service.dto.auth.LoginRequest;
 import github.hqn03.auth_service.dto.auth.LoginResponse;
 import github.hqn03.auth_service.dto.auth.RegisterRequest;
 import github.hqn03.auth_service.dto.auth.RegisterResponse;
+import github.hqn03.auth_service.exception.AppException;
+import github.hqn03.auth_service.exception.ResourceNotFoundException;
+import github.hqn03.auth_service.mapper.UserMapper;
 import github.hqn03.auth_service.model.EmailVerificationToken;
+import github.hqn03.auth_service.model.Role;
 import github.hqn03.auth_service.model.User;
 import github.hqn03.auth_service.repository.EmailVerificationTokenRepository;
+import github.hqn03.auth_service.repository.RoleRepository;
 import github.hqn03.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.security.auth.login.AccountLockedException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordEncoder passwordEncoder;
-
-    @NonFinal
-    protected static String SECRET_KEY = "YwMMyYEYNA6CMEl7lWcVQAd5sQ/U2wiDOG4VU+ZU0RQ=";
+    private final JwtEncoder jwtEncoder;
+    private final UserMapper userMapper;
+    private final RoleService roleService;
 
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
         if(userRepository.existsByUsername(registerRequest.username())) {
-            throw new RuntimeException("Username is exist");
+            throw new AppException("Username is existed", HttpStatus.BAD_REQUEST);
         }
 
         if(userRepository.existsByEmail(registerRequest.email())) {
-            throw new RuntimeException("Email is exist");
+            throw new AppException("Email is existed", HttpStatus.BAD_REQUEST);
         }
 
-        User user = new User();
-        user.setUsername(registerRequest.username());
-        user.setEmail(registerRequest.email());
+        User user = userMapper.toEntity(registerRequest);
         user.setPassword(passwordEncoder.encode(registerRequest.password()));
+
+        Role userRole = roleService.getUserRole();
+        user.addRole(userRole);
+
         User saved = userRepository.save(user);
 
         // Generate token
@@ -65,47 +82,36 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByUsernameOrEmail(loginRequest.identifier(), loginRequest.identifier())
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
-        if(!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
-        }
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    loginRequest.identifier(),
+                    loginRequest.password()
+            );
 
-        if (!user.isEmailVerified()) {
-            throw new RuntimeException("Email not verified");
-        }
+            Authentication authentication = authenticationManager.authenticate(authToken);
+            User user = (User) authentication.getPrincipal();
 
-        var token = generateToken(user.getUsername());
+            var token = generateToken(user);
 
-        return new LoginResponse(token);
+            return new LoginResponse(token);
+    }
 
-    };
+    private String generateToken(User user) {
+        Instant now = Instant.now();
 
-    public String generateToken(String username){
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+        String scope = user.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
 
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(username)
-                .issuer("dev")
-                .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
-                ))
-                .claim("customClaim", "Custom")
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("dev-service")
+                .issuedAt(now)
+                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .subject(user.getUsername())
+                .claim("scope", scope)
                 .build();
 
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-
-        JWSObject jwsObject = new JWSObject(header, payload);
-
-        try {
-            jwsObject.sign(new MACSigner(SECRET_KEY.getBytes()));
-            return jwsObject.serialize();
-        }catch (JOSEException e){
-            log.error("Cannot create jwt token");
-            throw new RuntimeException(e);
-        }
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
     public void forgotPassword() {};
