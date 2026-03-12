@@ -4,6 +4,7 @@ import github.hqn03.auth_service.dto.product.ProductDetailResponse;
 import github.hqn03.auth_service.dto.product.ProductResponse;
 import github.hqn03.auth_service.dto.product.ProductRequest;
 import github.hqn03.auth_service.dto.sku.SkuCreateRequest;
+import github.hqn03.auth_service.dto.sku.SkuDetailResponse;
 import github.hqn03.auth_service.exception.AppException;
 import github.hqn03.auth_service.exception.ResourceNotFoundException;
 import github.hqn03.auth_service.mapper.ProductMapper;
@@ -78,7 +79,8 @@ public class ProductService {
             product.setCategory(category);
         }
 
-        return  productMapper.toProductDetailResponse(productRepository.save(product));
+        Product updated = productRepository.save(product);
+        return  productMapper.toProductDetailResponse(updated);
     }
 
     @Transactional
@@ -88,9 +90,8 @@ public class ProductService {
     }
 
     @Transactional
-    public void addSku(Long productId, SkuCreateRequest request){
+    public SkuDetailResponse addSku(Long productId, SkuCreateRequest request){
         Product product = this.findById(productId);
-
-        skuService.createVariant(product, request);
+        return skuService.createVariant(product, request);
     }
 }

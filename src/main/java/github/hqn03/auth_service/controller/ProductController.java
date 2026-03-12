@@ -3,6 +3,8 @@ package github.hqn03.auth_service.controller;
 import github.hqn03.auth_service.dto.product.ProductDetailResponse;
 import github.hqn03.auth_service.dto.product.ProductRequest;
 import github.hqn03.auth_service.dto.product.ProductResponse;
+import github.hqn03.auth_service.dto.sku.SkuCreateRequest;
+import github.hqn03.auth_service.dto.sku.SkuDetailResponse;
 import github.hqn03.auth_service.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -63,5 +65,7 @@ public class ProductController {
     @PostMapping("/{id}/sku")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:UPDATE')")
-    public
+    public SkuDetailResponse addSku(@PathVariable Long id, @RequestBody SkuCreateRequest request){
+        return productService.addSku(id, request);
+    }
 }
