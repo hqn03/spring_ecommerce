@@ -1,6 +1,7 @@
 package github.hqn03.auth_service.service;
 
 import github.hqn03.auth_service.dto.auth.RegisterRequest;
+import github.hqn03.auth_service.dto.customer.CustomerRequest;
 import github.hqn03.auth_service.dto.user.CreateUserRequest;
 import github.hqn03.auth_service.dto.user.UpdateUserRequest;
 import github.hqn03.auth_service.dto.user.UserResponse;
@@ -35,6 +36,7 @@ public class UserService {
     private final SecurityService securityService;
     private final UserMapper userMapper;
     private final RoleService roleService;
+    private final CustomerService customerService;
 
     public User findById(Long id) {
         return userRepository.findById(id)
@@ -46,9 +48,12 @@ public class UserService {
         validateUniqueFields(null, request.username(), request.password());
 
         User user = userMapper.toEntity(request);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.password()));
         user.addRole(roleService.getUserRole());
 
+        User saved = userRepository.save(user);
+
+        customerService.createCustomer(saved, request);
         return userRepository.save(user);
     }
 

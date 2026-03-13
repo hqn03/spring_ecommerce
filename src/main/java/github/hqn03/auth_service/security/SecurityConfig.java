@@ -53,7 +53,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/permissions").hasAuthority("SCOPE_ROLE:CREATE")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
