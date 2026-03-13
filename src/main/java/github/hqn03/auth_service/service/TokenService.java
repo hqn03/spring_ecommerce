@@ -1,7 +1,7 @@
 package github.hqn03.auth_service.service;
 
-import github.hqn03.auth_service.model.VerificationToken;
 import github.hqn03.auth_service.model.User;
+import github.hqn03.auth_service.model.VerificationToken;
 import github.hqn03.auth_service.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SoftDelete;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -28,7 +27,7 @@ public class Category extends BaseEntity {
 
     private String description;
 
-    @ManyToOne(fetch =  FetchType.EAGER )
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "parent_id")
     private Category parent;
 

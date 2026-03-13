@@ -1,8 +1,8 @@
 package github.hqn03.auth_service.service;
 
 import github.hqn03.auth_service.dto.product.ProductDetailResponse;
-import github.hqn03.auth_service.dto.product.ProductResponse;
 import github.hqn03.auth_service.dto.product.ProductRequest;
+import github.hqn03.auth_service.dto.product.ProductResponse;
 import github.hqn03.auth_service.dto.sku.SkuCreateRequest;
 import github.hqn03.auth_service.dto.sku.SkuDetailResponse;
 import github.hqn03.auth_service.exception.AppException;
@@ -28,7 +28,7 @@ public class ProductService {
     private final CategoryService categoryService;
 
     @Transactional
-    public Product findById(Long id){
+    public Product findById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product id " + id + " not found"));
     }
@@ -80,17 +80,17 @@ public class ProductService {
         }
 
         Product updated = productRepository.save(product);
-        return  productMapper.toProductDetailResponse(updated);
+        return productMapper.toProductDetailResponse(updated);
     }
 
     @Transactional
-    public void deleteProduct(Long id){
+    public void deleteProduct(Long id) {
         Product product = this.findById(id);
         productRepository.delete(product);
     }
 
     @Transactional
-    public SkuDetailResponse addSku(Long productId, SkuCreateRequest request){
+    public SkuDetailResponse addSku(Long productId, SkuCreateRequest request) {
         Product product = this.findById(productId);
         return skuService.createSku(product, request);
     }

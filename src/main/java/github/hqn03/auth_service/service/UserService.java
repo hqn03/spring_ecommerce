@@ -3,35 +3,24 @@ package github.hqn03.auth_service.service;
 import github.hqn03.auth_service.dto.auth.RegisterRequest;
 import github.hqn03.auth_service.dto.user.CreateUserRequest;
 import github.hqn03.auth_service.dto.user.UpdateUserRequest;
-import github.hqn03.auth_service.dto.user.UserDetailResponse;
 import github.hqn03.auth_service.dto.user.UserResponse;
 import github.hqn03.auth_service.exception.AppException;
 import github.hqn03.auth_service.exception.ResourceNotFoundException;
 import github.hqn03.auth_service.mapper.UserMapper;
-import github.hqn03.auth_service.model.Permission;
 import github.hqn03.auth_service.model.Role;
 import github.hqn03.auth_service.model.User;
-import github.hqn03.auth_service.repository.PermissionRepository;
-import github.hqn03.auth_service.repository.RoleRepository;
 import github.hqn03.auth_service.repository.UserRepository;
 import github.hqn03.auth_service.security.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,13 +36,13 @@ public class UserService {
     private final UserMapper userMapper;
     private final RoleService roleService;
 
-    public User findById(Long id){
+    public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found"));
     }
 
     @Transactional
-    public User registerUser(RegisterRequest request){
+    public User registerUser(RegisterRequest request) {
         validateUniqueFields(null, request.username(), request.password());
 
         User user = userMapper.toEntity(request);
@@ -119,30 +108,31 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Long id  ){
+    public void deleteUser(Long id) {
         User user = this.findById(id);
         userRepository.delete(user);
     }
 
-    private void validateRoleAssignment(Set<Role> targetRoles){
+    private void validateRoleAssignment(Set<Role> targetRoles) {
         if (securityService.isSuperAdmin()) return;
         boolean hasHighLevelRole = targetRoles.stream()
                 .anyMatch(r -> r.getName().equals("ADMIN") || r.getName().equals("SUPER_ADMIN"));
-        if(hasHighLevelRole) {
+        if (hasHighLevelRole) {
             throw new AccessDeniedException("You are not allowed to assign role Admin and Super Admin");
 
-        };
+        }
+        ;
     }
 
-    private void validateUniqueFields(Long currentUserId, String username, String email){
+    private void validateUniqueFields(Long currentUserId, String username, String email) {
         userRepository.findByUsername(username).ifPresent(existingUser -> {
-            if(!Objects.equals(currentUserId, existingUser.getId())){
+            if (!Objects.equals(currentUserId, existingUser.getId())) {
                 throw new AppException("Username already exists", HttpStatus.BAD_REQUEST);
             }
         });
 
         userRepository.findByEmail(email).ifPresent(existingUser -> {
-            if(!Objects.equals(currentUserId, existingUser.getId())){
+            if (!Objects.equals(currentUserId, existingUser.getId())) {
                 throw new AppException("Email already exists", HttpStatus.BAD_REQUEST);
             }
         });

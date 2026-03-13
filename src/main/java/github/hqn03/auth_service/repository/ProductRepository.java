@@ -3,9 +3,7 @@ package github.hqn03.auth_service.repository;
 import github.hqn03.auth_service.model.Product;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
-import org.springframework.lang.NonNullApi;
 
 import java.util.List;
 import java.util.Optional;

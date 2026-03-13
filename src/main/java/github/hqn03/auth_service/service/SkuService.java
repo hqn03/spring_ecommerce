@@ -45,7 +45,7 @@ public class SkuService {
         return skuMapper.toSkuDetailResponse(created);
     }
 
-    public List<SkuDetailResponse> getSkus(){
+    public List<SkuDetailResponse> getSkus() {
         return skuRepository.findAll()
                 .stream()
                 .map(skuMapper::toSkuDetailResponse)

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 @Service
 public class SecurityService {
 
-    private Authentication getAuth(){
+    private Authentication getAuth() {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 

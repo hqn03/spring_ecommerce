@@ -1,6 +1,5 @@
 package github.hqn03.auth_service.controller;
 
-import github.hqn03.auth_service.constant.PermissionConstant;
 import github.hqn03.auth_service.model.Permission;
 import github.hqn03.auth_service.service.PermissionService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ public class PermissionController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Permission> getAll(){
+    public List<Permission> getAll() {
         return permissionService.getAll();
     }
 }

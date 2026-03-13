@@ -2,8 +2,8 @@ package github.hqn03.auth_service.mapper;
 
 import github.hqn03.auth_service.dto.category.CategoryDTO;
 import github.hqn03.auth_service.dto.product.ProductDetailResponse;
-import github.hqn03.auth_service.dto.product.ProductResponse;
 import github.hqn03.auth_service.dto.product.ProductRequest;
+import github.hqn03.auth_service.dto.product.ProductResponse;
 import github.hqn03.auth_service.model.Category;
 import github.hqn03.auth_service.model.Product;
 import org.mapstruct.*;
@@ -24,7 +24,7 @@ public interface ProductMapper {
 
     @Named("toCategoryDTO")
     default CategoryDTO toCategoryDTO(Category category) {
-        if(category == null) return null;
+        if (category == null) return null;
         return new CategoryDTO(category.getId(), category.getSlug(), category.getName());
     }
 

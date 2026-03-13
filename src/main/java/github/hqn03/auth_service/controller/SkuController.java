@@ -26,8 +26,8 @@ public class SkuController {
 
     @DeleteMapping("/{id}")
     public String deleteSku(@PathVariable Long id) {
-         skuService.deleteSku(id);
-         return "Delete sku successfully";
+        skuService.deleteSku(id);
+        return "Delete sku successfully";
     }
 
 }

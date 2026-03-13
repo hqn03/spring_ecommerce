@@ -9,7 +9,6 @@ import github.hqn03.auth_service.repository.ColorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ public class ColorService {
     private final ColorRepository colorRepository;
     private final ColorMapper colorMapper;
 
-    public Color findById(Integer id){
+    public Color findById(Integer id) {
         return colorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Color id " + id + " not found"));
     }
@@ -45,7 +44,7 @@ public class ColorService {
     }
 
     @Transactional
-    public ColorResponse updateColor(Integer id,  ColorRequest request) {
+    public ColorResponse updateColor(Integer id, ColorRequest request) {
         Color color = this.findById(id);
 
         colorMapper.updateColorFromRequest(request, color);

@@ -5,14 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.DialectOverride;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -45,7 +43,7 @@ public class User extends BaseEntity implements UserDetails {
     private boolean blocked = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @BatchSize(size=20)
+    @BatchSize(size = 20)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false)
@@ -93,7 +91,7 @@ public class User extends BaseEntity implements UserDetails {
         return this.enabled;
     }
 
-    public void addRole(Role role){
+    public void addRole(Role role) {
         if (this.roles == null) {
             this.roles = new HashSet<>();
         }

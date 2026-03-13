@@ -1,6 +1,5 @@
 package github.hqn03.auth_service.controller;
 
-import github.hqn03.auth_service.dto.color.ColorResponse;
 import github.hqn03.auth_service.dto.size.SizeRequest;
 import github.hqn03.auth_service.dto.size.SizeResponse;
 import github.hqn03.auth_service.service.SizeService;
@@ -20,39 +19,38 @@ public class SizeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('SIZE:CREATE')")
-    public SizeResponse createSize(@RequestBody SizeRequest request){
+    public SizeResponse createSize(@RequestBody SizeRequest request) {
         return sizeService.createSize(request);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('SIZE:READ')")
-    public List<SizeResponse> getSizes(){
+    public List<SizeResponse> getSizes() {
         return sizeService.getSizes();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('SIZE:READ')")
-    public SizeResponse getSizeById(@PathVariable int id){
+    public SizeResponse getSizeById(@PathVariable int id) {
         return sizeService.getSizeById(id);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('SIZE:READ')")
-    public SizeResponse updateSize(@PathVariable int id, @RequestBody SizeRequest request){
+    public SizeResponse updateSize(@PathVariable int id, @RequestBody SizeRequest request) {
         return sizeService.updateSize(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('SIZE:READ')")
-    public String deleteSize(@PathVariable int id){
+    public String deleteSize(@PathVariable int id) {
         sizeService.deleteSize(id);
         return "Delete size successfully";
     }
-
 
 
 }

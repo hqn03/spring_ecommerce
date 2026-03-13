@@ -1,6 +1,8 @@
 package github.hqn03.auth_service.service;
 
-import github.hqn03.auth_service.dto.role.*;
+import github.hqn03.auth_service.dto.role.RoleDetailResponse;
+import github.hqn03.auth_service.dto.role.RoleRequest;
+import github.hqn03.auth_service.dto.role.RoleResponse;
 import github.hqn03.auth_service.exception.AppException;
 import github.hqn03.auth_service.exception.ResourceNotFoundException;
 import github.hqn03.auth_service.mapper.RoleMapper;
@@ -27,7 +29,7 @@ public class RoleService {
     private final RoleMapper roleMapper;
     private final PermissionService permissionService;
 
-    public Role findById(Integer id){
+    public Role findById(Integer id) {
         return roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role id " + id + " not found"));
     }
@@ -36,24 +38,24 @@ public class RoleService {
         return new HashSet<>(roleRepository.findAllById(roleIds));
     }
 
-    public Role getUserRole(){
-        return roleRepository.findByName("USER").orElseThrow(() ->  new ResourceNotFoundException("Role not found"));
+    public Role getUserRole() {
+        return roleRepository.findByName("USER").orElseThrow(() -> new ResourceNotFoundException("Role not found"));
     }
 
-    public List<RoleResponse> getAll(){
+    public List<RoleResponse> getAll() {
         return roleRepository.findAll()
                 .stream()
                 .map(roleMapper::toRoleResponse)
                 .toList();
     }
 
-    public RoleDetailResponse getRole(Integer id){
+    public RoleDetailResponse getRole(Integer id) {
         Role role = this.findById(id);
         return roleMapper.toRoleDetailResponse(role);
     }
 
     @Transactional
-    public RoleDetailResponse createRole(RoleRequest request){
+    public RoleDetailResponse createRole(RoleRequest request) {
         this.validateUniqueFields(null, request.name());
 
         Role role = roleMapper.toEntity(request);
@@ -71,15 +73,15 @@ public class RoleService {
     }
 
     @Transactional
-    public RoleDetailResponse updateRole(Integer id, RoleRequest request){
+    public RoleDetailResponse updateRole(Integer id, RoleRequest request) {
         Role role = this.findById(id);
         this.validateUniqueFields(id, request.name());
 
         roleMapper.updateRoleFromRequest(request, role);
 
-        if(request.permissionIds() != null){
+        if (request.permissionIds() != null) {
             Set<Permission> permissions = permissionService.findAllByIds(request.permissionIds());
-            if(permissions.size() != request.permissionIds().size()){
+            if (permissions.size() != request.permissionIds().size()) {
                 throw new ResourceNotFoundException("Some permission IDs are invalid");
             }
             role.setPermissions(permissions);
@@ -90,18 +92,18 @@ public class RoleService {
     }
 
     @Transactional
-    public String deleteRole(Integer id){
+    public String deleteRole(Integer id) {
         Role role = this.findById(id);
 
         roleRepository.delete(role);
         return "Role Deleted Successfully";
     }
 
-    private void validateUniqueFields(Integer currentId, String name){
+    private void validateUniqueFields(Integer currentId, String name) {
         roleRepository.findByName(name).ifPresent(role -> {
-            if(Objects.equals(currentId, role.getId()))
-                throw new AppException("Role name is already exists", HttpStatus.BAD_REQUEST);
-            }
+                    if (Objects.equals(currentId, role.getId()))
+                        throw new AppException("Role name is already exists", HttpStatus.BAD_REQUEST);
+                }
         );
     }
 

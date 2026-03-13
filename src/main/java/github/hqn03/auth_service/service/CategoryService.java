@@ -66,21 +66,20 @@ public class CategoryService {
         Integer currentParentId = (category.getParent() != null) ? category.getParent().getId() : null;
         Integer newParentId = request.parentId();
 
-        if(!Objects.equals(currentParentId, newParentId)) {
-            if(newParentId != null){
+        if (!Objects.equals(currentParentId, newParentId)) {
+            if (newParentId != null) {
                 if (id.equals(newParentId)) {
                     throw new AppException("A category cannot be its own parent category.", HttpStatus.BAD_REQUEST);
                 }
 
                 Category newParent = this.findById(newParentId);
 
-                if (this.isChildOf(newParent, category)){
-                    throw new AppException("Cannot select child category as parent category.",  HttpStatus.BAD_REQUEST);
+                if (this.isChildOf(newParent, category)) {
+                    throw new AppException("Cannot select child category as parent category.", HttpStatus.BAD_REQUEST);
                 }
 
                 category.setParent(newParent);
-            }
-            else {
+            } else {
                 category.setParent(null);
             }
         }
@@ -100,7 +99,7 @@ public class CategoryService {
     private boolean isChildOf(Category potentialParent, Category currentCategory) {
         Category temp = potentialParent.getParent();
         while (temp != null) {
-            if(temp.getId().equals(currentCategory.getId())){
+            if (temp.getId().equals(currentCategory.getId())) {
                 return true;
             }
             temp = temp.getParent();

@@ -19,35 +19,35 @@ public class CategoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('CATEGORY:CREATE')")
-    public CategoryResponse createCategory(@RequestBody CategoryRequest request){
+    public CategoryResponse createCategory(@RequestBody CategoryRequest request) {
         return categoryService.createCategory(request);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('CATEGORY:READ')")
-    public List<CategoryResponse> getCategories(){
+    public List<CategoryResponse> getCategories() {
         return categoryService.getCategories();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('CATEGORY:READ')")
-    public CategoryResponse getCategoryById(@PathVariable int id){
+    public CategoryResponse getCategoryById(@PathVariable int id) {
         return categoryService.getCategoryById(id);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('CATEGORY:READ')")
-    public CategoryResponse updateCategory(@PathVariable int id, @RequestBody CategoryRequest request){
+    public CategoryResponse updateCategory(@PathVariable int id, @RequestBody CategoryRequest request) {
         return categoryService.updateCategory(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('CATEGORY:READ')")
-    public String deleteCategory(@PathVariable int id){
+    public String deleteCategory(@PathVariable int id) {
         categoryService.deleteCategory(id);
         return "Delete size successfully";
     }

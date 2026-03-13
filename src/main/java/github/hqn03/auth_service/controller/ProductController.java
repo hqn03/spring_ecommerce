@@ -36,28 +36,28 @@ public class ProductController {
     @GetMapping("/id/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:READ')")
-    public ProductDetailResponse getProductById(@PathVariable Long id){
+    public ProductDetailResponse getProductById(@PathVariable Long id) {
         return productService.getProductById(id);
     }
 
     @GetMapping("/s/{slug}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:READ')")
-    public ProductDetailResponse getProductBySlug(@PathVariable String slug){
+    public ProductDetailResponse getProductBySlug(@PathVariable String slug) {
         return productService.getProductBySlug(slug);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:UPDATE')")
-    public ProductDetailResponse updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest){
+    public ProductDetailResponse updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
         return productService.updateProduct(id, productRequest);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:DELETE')")
-    public String deleteProduct(@PathVariable Long id){
+    public String deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return "Delete product successfully";
     }
@@ -65,7 +65,7 @@ public class ProductController {
     @PostMapping("/{id}/sku")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:UPDATE')")
-    public SkuDetailResponse addSku(@PathVariable Long id, @RequestBody SkuCreateRequest request){
+    public SkuDetailResponse addSku(@PathVariable Long id, @RequestBody SkuCreateRequest request) {
         return productService.addSku(id, request);
     }
 }

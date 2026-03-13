@@ -24,7 +24,7 @@ public class PermissionService {
     }
 
     @Cacheable(value = "permissions")
-    public List<Permission> getAll(){
+    public List<Permission> getAll() {
         log.info("GET TO ALL PERMISSIONS");
         return permissionRepository.findAll();
     }

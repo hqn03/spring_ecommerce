@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SoftDelete;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -12,4 +12,5 @@ public record SkuCreateRequest(
         @NotBlank String skuCode,
         @Min(0) BigDecimal price,
         @Min(0) Integer stockQty
-) {}
+) {
+}
