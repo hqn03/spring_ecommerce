@@ -4,30 +4,31 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SoftDelete;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "categories")
+@SoftDelete
 @NoArgsConstructor
 @Getter
 @Setter
-public class Category {
+public class Category extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name", nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "slug", nullable = false)
+    @Column(nullable = false)
     private String slug;
 
-    @Column(name = "description")
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch =  FetchType.EAGER )
     @JoinColumn(name = "parent_id")
     private Category parent;
 
@@ -36,7 +37,4 @@ public class Category {
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private List<Product> products;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -24,7 +24,7 @@ import java.util.Set;
 @Setter
 @SQLRestriction("deleted_at = 0")
 @SQLDelete(sql = "UPDATE users SET deleted_at = UNIX_TIMESTAMP(NOW(3)) * 1000 WHERE id = ?")
-public class User implements UserDetails {
+public class User extends BaseEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,19 +52,11 @@ public class User implements UserDetails {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @OneToOne(mappedBy = "user")
+    private Customer customer;
 
-    @Column(name="updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    @Column(name = "deleted_at", nullable = false)
+    @Column(nullable = false)
     private Long deletedAt = 0L;
-
-    @PreUpdate
-    public void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

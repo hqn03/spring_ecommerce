@@ -5,15 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SoftDelete;
 
 import java.util.Set;
 
 @Entity
 @Table(name = "roles")
+@SoftDelete
 @NoArgsConstructor
 @Getter
 @Setter
-public class Role {
+public class Role extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

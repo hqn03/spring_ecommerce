@@ -5,5 +5,6 @@ CREATE TABLE roles
     description VARCHAR(255),
 
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deleted_at  TIMESTAMP NULL
+    updated_at  TIMESTAMP,
+    deleted     BOOLEAN   DEFAULT 0
 );

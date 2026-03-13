@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class SkuService {
@@ -32,7 +34,7 @@ public class SkuService {
     }
 
     @Transactional
-    public SkuDetailResponse createVariant(Product product, SkuCreateRequest request) {
+    public SkuDetailResponse createSku(Product product, SkuCreateRequest request) {
         if (skuRepository.existsBySkuCode(request.skuCode())) {
             throw new AppException("SKU code " + request.skuCode() + " is already in use.", HttpStatus.BAD_REQUEST);
         }
@@ -41,5 +43,20 @@ public class SkuService {
         newSku.setProduct(product);
         Sku created = skuRepository.save(newSku);
         return skuMapper.toSkuDetailResponse(created);
+    }
+
+    public List<SkuDetailResponse> getSkus(){
+        return skuRepository.findAll()
+                .stream()
+                .map(skuMapper::toSkuDetailResponse)
+                .toList();
+    }
+
+    @Transactional
+    public void deleteSku(Long id) {
+        Sku sku = skuRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sku id not found"));
+
+        skuRepository.delete(sku);
     }
 }

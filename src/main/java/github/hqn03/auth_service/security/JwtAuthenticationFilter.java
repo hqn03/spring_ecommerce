@@ -19,6 +19,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -42,9 +44,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String user = jwt.getSubject();
 
             String scope = jwt.getClaim("scope");
-            List<SimpleGrantedAuthority> authorities = Arrays.stream(scope.split(" "))
-                    .map(SimpleGrantedAuthority::new)
-                    .toList();
+            List<SimpleGrantedAuthority> authorities = (scope == null || scope.isBlank())
+                    ? Collections.emptyList()
+                    : Arrays.stream(scope.split(" "))
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);

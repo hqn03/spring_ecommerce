@@ -4,36 +4,37 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SoftDelete;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "skus")
+@SoftDelete
 @NoArgsConstructor
 @Getter
 @Setter
-public class Sku {
+public class Sku extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "color_id")
     private Color color;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "size_id")
     private Size size;
 
-    @Column(name = "sku_code", unique = true, nullable = false)
+    @Column(unique = true, nullable = false)
     private String skuCode;
 
     private BigDecimal price = BigDecimal.ZERO;
 
-    @Column(name = "stock_qty")
     private Integer stockQty = 0;
 }

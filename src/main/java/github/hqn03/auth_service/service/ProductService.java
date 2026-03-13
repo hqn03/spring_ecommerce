@@ -92,6 +92,6 @@ public class ProductService {
     @Transactional
     public SkuDetailResponse addSku(Long productId, SkuCreateRequest request){
         Product product = this.findById(productId);
-        return skuService.createVariant(product, request);
+        return skuService.createSku(product, request);
     }
 }

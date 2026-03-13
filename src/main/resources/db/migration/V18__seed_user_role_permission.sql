@@ -91,37 +91,16 @@ WHERE u.username NOT IN ('admin', 'superadmin');
 INSERT INTO colors (name, hex_code)
 VALUES ('Black', '#000000'),
        ('White', '#FFFFFF'),
-       ('Light Gray', '#D3D3D3'),
-       ('Dark Gray', '#404040'),
        ('Red', '#FF0000'),
-       ('Gray', '#808080'),
-       ('Dark Red', '#8B0000'),
-       ('Crimson', '#DC143C'),
-       ('Blue', '#0000FF'),
-       ('Navy', '#000080'),
-       ('Sky Blue', '#87CEEB'),
-       ('Light Blue', '#ADD8E6'),
-       ('Green', '#008000'),
-       ('Dark Green', '#006400'),
-       ('Lime', '#32CD32'),
-       ('Olive', '#808000'),
-       ('Yellow', '#FFFF00'),
-       ('Gold', '#FFD700'),
-       ('Mustard', '#FFDB58'),
-       ('Orange', '#FFA500'),
-       ('Coral', '#FF7F50'),
-       ('Pink', '#FFC0CB'),
-       ('Hot Pink', '#FF69B4'),
-       ('Purple', '#800080'),
-       ('Lavender', '#E6E6FA'),
-       ('Violet', '#8F00FF'),
-       ('Brown', '#8B4513'),
-       ('Chocolate', '#7B3F00'),
-       ('Beige', '#F5F5DC'),
-       ('Khaki', '#F0E68C'),
-       ('Cyan', '#00FFFF'),
-       ('Turquoise', '#40E0D0'),
-       ('Teal', '#008080');
+       ('Gray', '#808080');
+
+INSERT INTO sizes (name)
+VALUES ('S'),
+    ('M'),
+    ('L'),
+    ('XL'),
+    ('XXL');
+
 
 INSERT INTO categories (name, slug, description, parent_id)
 VALUES ('Men', 'men', 'Men fashion', NULL),
@@ -141,4 +120,53 @@ VALUES ('T-Shirts', 'men-tshirts', 'Men t-shirts', 1),
        ('Bags', 'bags', 'Fashion bags', 4),
        ('Watches', 'watches', 'Wrist watches', 4),
        ('Sunglasses', 'sunglasses', 'Fashion sunglasses', 4);
+
+INSERT INTO products (name, slug, description, category_id)
+VALUES
+-- Men T-Shirts (ID 5)
+('Basic Cotton Tee', 'basic-cotton-tee', 'High quality cotton', 5),
+('V-Neck Summer Shirt', 'v-neck-summer-shirt', 'Breathable fabric', 5),
+-- Men Shirts (ID 6)
+('Oxford Button Down', 'oxford-button-down', 'Classic formal look', 6),
+('Flannel Checkered Shirt', 'flannel-checkered-shirt', 'Warm and cozy', 6),
+-- Men Jeans (ID 7)
+('Slim Fit Denim', 'slim-fit-denim', 'Stretchable denim', 7),
+('Classic Straight Jeans', 'classic-straight-jeans', 'Timeless style', 7),
+-- Women Dresses (ID 8)
+('Floral Summer Dress', 'floral-summer-dress', 'Beautiful floral print', 8),
+('Little Black Dress', 'little-black-dress', 'Elegant evening wear', 8),
+-- Women Skirts (ID 9)
+('Pleated Midi Skirt', 'pleated-midi-skirt', 'Flowy and stylish', 9),
+('Denim Mini Skirt', 'denim-mini-skirt', 'Casual daily wear', 9),
+-- Women Blouses (ID 10)
+('Silk Office Blouse', 'silk-office-blouse', 'Professional look', 10),
+('Chiffon Party Top', 'chiffon-party-top', 'Light and airy', 10),
+-- Kids Toys (ID 11)
+('Building Blocks Set', 'building-blocks', 'Educational toy', 11),
+('Plush Bear', 'plush-bear', 'Soft and cuddly', 11),
+-- Kids Clothing (ID 12)
+('Cartoon Print Hoodie', 'kids-hoodie', 'Fun for kids', 12),
+('Toddler Cotton Set', 'toddler-set', 'Gentle on skin', 12),
+-- Bags (ID 13)
+('Leather Tote Bag', 'leather-tote', 'Spacious and durable', 13),
+('Canvas Backpack', 'canvas-backpack', 'For school and travel', 13),
+-- Watches (ID 14)
+('Classic Silver Watch', 'silver-watch', 'Quartz movement', 14),
+-- Sunglasses (ID 15)
+('Aviator Sunglasses', 'aviator-sun', 'UV400 protection', 15);
+
+INSERT IGNORE INTO skus (product_id, color_id, size_id, sku_code, price, stock_qty)
+SELECT
+    p.id,
+    c.id,
+    s.id,
+    UPPER(CONCAT(SUBSTRING(p.slug, 1, 3), p.id, '-', c.name, '-', s.name)) AS sku_code, -- Thêm p.id vào code để đảm bảo duy nhất
+    (250000 + (p.id * 5000)) AS price,
+    100 AS stock_qty
+FROM products p
+         CROSS JOIN colors c
+         CROSS JOIN sizes s
+WHERE p.id BETWEEN (SELECT MIN(id) FROM (SELECT id FROM products ORDER BY id DESC LIMIT 20) AS t) AND (SELECT MAX(id) FROM products)
+  AND c.name IN ('Black', 'White')
+  AND s.name IN ('S', 'M', 'L', 'XL', 'XXL');
 
