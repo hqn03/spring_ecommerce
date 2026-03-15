@@ -9,8 +9,7 @@ public record SkuDetailResponse(
         Integer stockQty,
         String colorName,
         String colorCode,
-        String sizeName,
-        String sizeDescription
+        String sizeName
 ) {
 
 }

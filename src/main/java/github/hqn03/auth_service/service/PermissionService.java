@@ -19,10 +19,6 @@ import java.util.Set;
 public class PermissionService {
     private final PermissionRepository permissionRepository;
 
-    Set<Permission> findAllByIds(Set<Integer> ids) {
-        return new HashSet<>(permissionRepository.findAllById(ids));
-    }
-
     @Cacheable(value = "permissions")
     public List<Permission> getAll() {
         log.info("GET TO ALL PERMISSIONS");

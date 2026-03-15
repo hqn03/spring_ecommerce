@@ -14,15 +14,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class SizeService {
     private final SizeRepository sizeRepository;
     private final SizeMapper sizeMapper;
-
-    @Transactional(readOnly = true)
-    public Size findById(Integer id) {
-        return sizeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Size id " + id + " not found"));
-    }
 
     @Transactional
     public SizeResponse createSize(SizeRequest request) {
@@ -32,7 +27,6 @@ public class SizeService {
         return sizeMapper.toSizeResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public List<SizeResponse> getSizes() {
         return sizeRepository.findAll()
                 .stream()
@@ -40,16 +34,17 @@ public class SizeService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public SizeResponse getSizeById(int id) {
-        Size size = this.findById(id);
+        Size size = sizeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Size id " + id + " not found"));
 
         return sizeMapper.toSizeResponse(size);
     }
 
     @Transactional
     public SizeResponse updateSize(int id, SizeRequest request) {
-        Size size = this.findById(id);
+        Size size = sizeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Size id " + id + " not found"));
 
         sizeMapper.updateSize(request, size);
         Size updated = sizeRepository.save(size);
@@ -59,7 +54,8 @@ public class SizeService {
 
     @Transactional
     public void deleteSize(int id) {
-        Size size = this.findById(id);
+        Size size = sizeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Size id " + id + " not found"));
 
         sizeRepository.delete(size);
     }

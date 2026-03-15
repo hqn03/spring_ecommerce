@@ -1,7 +1,6 @@
 package github.hqn03.auth_service.service;
 
 import github.hqn03.auth_service.dto.auth.RegisterRequest;
-import github.hqn03.auth_service.dto.customer.CustomerRequest;
 import github.hqn03.auth_service.dto.user.CreateUserRequest;
 import github.hqn03.auth_service.dto.user.UpdateUserRequest;
 import github.hqn03.auth_service.dto.user.UserResponse;
@@ -22,7 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,35 +37,53 @@ public class UserService {
     private final RoleService roleService;
     private final CustomerService customerService;
 
-    public User findById(Long id) {
+    private User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found"));
     }
 
-    @Transactional
-    public User registerUser(RegisterRequest request) {
-        validateUniqueFields(null, request.username(), request.password());
+    private void validateRoleAssignment(Set<Role> targetRoles) {
+        if (securityService.isSuperAdmin()) return;
+        boolean hasHighLevelRole = targetRoles.stream()
+                .anyMatch(r -> r.getName().equals("ADMIN") || r.getName().equals("SUPER_ADMIN"));
+        if (hasHighLevelRole) {
+            throw new AccessDeniedException("You are not allowed to assign role Admin and Super Admin");
 
-        User user = userMapper.toEntity(request);
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.addRole(roleService.getUserRole());
-
-        User saved = userRepository.save(user);
-
-        customerService.createCustomer(saved, request);
-        return userRepository.save(user);
+        }
     }
 
     @Transactional
-    public UserResponse createUser(CreateUserRequest createUserRequest) {
-        this.validateUniqueFields(null, createUserRequest.username(), createUserRequest.email());
+    public User registerUser(RegisterRequest request) {
+        if(userRepository.existsByUsernameOrEmail(request.username(), request.password())){
+            throw new AppException("Username or email already exists", HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.addRole(roleService.getRoleUser());
+
+        User saved = userRepository.save(user);
+        customerService.createCustomer(saved.getId(), request);
+        return saved;
+    }
+
+    @Transactional
+    public UserResponse createUser(CreateUserRequest request) {
+        if(userRepository.existsByUsernameOrEmail(request.username(), request.email())){
+            throw new AppException("Username or email already exists", HttpStatus.BAD_REQUEST);
+        };
 
         String adminUsername = securityService.getUsername();
-        Set<Role> roles = roleService.findAllByIds(createUserRequest.roleIds());
-        this.validateRoleAssignment(roles);
+        Set<Role> roles;
+        if(request.roleIds() == null || request.roleIds().isEmpty()){
+            roles = new HashSet<>();
+        }else {
+            roles = roleService.findAllByIds(request.roleIds());
+            this.validateRoleAssignment(roles);
+        }
 
-        User user = userMapper.toEntity(createUserRequest);
-        user.setPassword(passwordEncoder.encode(createUserRequest.password()));
+        User user = userMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(request.password()));
         user.setRoles(roles);
 
         User saved = userRepository.save(user);
@@ -92,54 +109,34 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
-        String adminUsername = securityService.getUsername();
+    public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User user = findById(id);
 
-        this.validateUniqueFields(id, updateUserRequest.username(), updateUserRequest.email());
+        if (userRepository.existsByUsernameAndIdNot(request.username(), id)) {
+            throw new AppException("Username already taken", HttpStatus.BAD_REQUEST);
+        }
+        if (userRepository.existsByEmailAndIdNot(request.email(), id)) {
+            throw new AppException("Email already registered", HttpStatus.BAD_REQUEST);
+        }
 
-        userMapper.updateUserFromRequest(updateUserRequest, user);
+        userMapper.updateUserFromRequest(request, user);
 
-        if (updateUserRequest.roleIds() != null && !updateUserRequest.roleIds().isEmpty()) {
-            Set<Role> roles = roleService.findAllByIds(updateUserRequest.roleIds());
+        if (request.roleIds() != null && !request.roleIds().isEmpty()) {
+            Set<Role> roles = roleService.findAllByIds(request.roleIds());
             validateRoleAssignment(roles);
             user.setRoles(roles);
         }
 
-        log.info("Admin '{}' updated user '{}' with email '{}'",
-                adminUsername, updateUserRequest.username(), updateUserRequest.email());
+        String adminUsername = securityService.getUsername();
+        log.info("Admin '{}' updated user ID {}", adminUsername, id);
 
         return userMapper.toUserResponse(user);
     }
 
     @Transactional
     public void deleteUser(Long id) {
-        User user = this.findById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found"));
         userRepository.delete(user);
-    }
-
-    private void validateRoleAssignment(Set<Role> targetRoles) {
-        if (securityService.isSuperAdmin()) return;
-        boolean hasHighLevelRole = targetRoles.stream()
-                .anyMatch(r -> r.getName().equals("ADMIN") || r.getName().equals("SUPER_ADMIN"));
-        if (hasHighLevelRole) {
-            throw new AccessDeniedException("You are not allowed to assign role Admin and Super Admin");
-
-        }
-        ;
-    }
-
-    private void validateUniqueFields(Long currentUserId, String username, String email) {
-        userRepository.findByUsername(username).ifPresent(existingUser -> {
-            if (!Objects.equals(currentUserId, existingUser.getId())) {
-                throw new AppException("Username already exists", HttpStatus.BAD_REQUEST);
-            }
-        });
-
-        userRepository.findByEmail(email).ifPresent(existingUser -> {
-            if (!Objects.equals(currentUserId, existingUser.getId())) {
-                throw new AppException("Email already exists", HttpStatus.BAD_REQUEST);
-            }
-        });
     }
 }

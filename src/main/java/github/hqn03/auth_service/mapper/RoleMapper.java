@@ -9,6 +9,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ public interface RoleMapper {
     RoleDetailResponse toRoleDetailResponse(Role role);
 
     default Set<String> toPermissionNames(Set<Permission> permissions) {
+        if(permissions==null) return Collections.emptySet();
         return permissions.stream().map(Permission::getName).collect(Collectors.toSet());
     }
 }

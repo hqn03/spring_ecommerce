@@ -3,6 +3,7 @@ package github.hqn03.auth_service.security;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -13,6 +14,17 @@ public class SecurityService {
 
     private Authentication getAuth() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    public Long getCustomerId(){
+        Authentication auth = getAuth();
+        if(auth==null) return null;
+
+        if (auth.getPrincipal() instanceof Jwt jwt) {
+            return Long.parseLong(jwt.getClaim("customerId"));
+        }
+
+        return null;
     }
 
     public String getUsername() {

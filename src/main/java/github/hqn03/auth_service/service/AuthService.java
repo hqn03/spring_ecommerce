@@ -35,9 +35,7 @@ public class AuthService {
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
         User user = userService.registerUser(registerRequest);
-        VerificationToken token = tokenService.generateVerificationToken(user);
-
-        //Call mailservice
+        VerificationToken token = tokenService.generateVerificationToken(user.getId());
 
         return new RegisterResponse("Registration successful. Please check your email to verify your account.");
     }
@@ -68,7 +66,7 @@ public class AuthService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("dev-service")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(user.getUsername())
                 .claim("scope", scope)
                 .build();

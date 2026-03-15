@@ -10,18 +10,11 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    Boolean existsByUsername(String username);
-
-    Boolean existsByEmail(String email);
-
-    Boolean existsByUsernameOrEmail(String username, String email);
+    boolean existsByUsernameOrEmailAndIdNot(String username, String email, Long id);
+    boolean existsByUsernameOrEmail(String username, String email);
 
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})
     Optional<User> findByUsernameOrEmail(String username, String email);
-
-    Optional<User> findByUsername(String username);
-
-    Optional<User> findByEmail(String email);
 
 
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})
@@ -39,4 +32,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @NonNull
     Optional<User> findById(@NonNull Long id);
 
+    boolean existsByUsernameAndIdNot(String username, Long id);
+
+    boolean existsByEmailAndIdNot(String email, Long id);
 }

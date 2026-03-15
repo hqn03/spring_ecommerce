@@ -8,6 +8,7 @@ import github.hqn03.auth_service.exception.ResourceNotFoundException;
 import github.hqn03.auth_service.mapper.SkuMapper;
 import github.hqn03.auth_service.model.Product;
 import github.hqn03.auth_service.model.Sku;
+import github.hqn03.auth_service.repository.ProductRepository;
 import github.hqn03.auth_service.repository.SkuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.List;
 public class SkuService {
     private final SkuRepository skuRepository;
     private final SkuMapper skuMapper;
+    private final ProductRepository productRepository;
 
     @Transactional
     public SkuDetailResponse updateSku(Long id, SkuUpdateRequest request) {
@@ -33,8 +35,11 @@ public class SkuService {
         return skuMapper.toSkuDetailResponse(updated);
     }
 
+
     @Transactional
-    public SkuDetailResponse createSku(Product product, SkuCreateRequest request) {
+    public SkuDetailResponse createSku(Long productId, SkuCreateRequest request) {
+        Product product = productRepository.getReferenceById(productId);
+
         if (skuRepository.existsBySkuCode(request.skuCode())) {
             throw new AppException("SKU code " + request.skuCode() + " is already in use.", HttpStatus.BAD_REQUEST);
         }

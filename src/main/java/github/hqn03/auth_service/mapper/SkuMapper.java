@@ -14,7 +14,6 @@ public interface SkuMapper {
     @Mapping(target = "colorName", source = "color.name")
     @Mapping(target = "colorCode", source = "color.hexCode")
     @Mapping(target = "sizeName", source = "size.name")
-    @Mapping(target = "sizeDescription", source = "size.description")
     SkuDetailResponse toSkuDetailResponse(Sku sku);
 
     @Mapping(target = "color.id", source = "colorId")

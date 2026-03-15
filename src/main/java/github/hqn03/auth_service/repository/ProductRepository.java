@@ -15,13 +15,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @NonNull
     List<Product> findAll();
 
-    @EntityGraph(attributePaths = {"category"})
-    Optional<Product> findBySlug(@NonNull String slug);
-
-    @Override
-    @NonNull
-    @EntityGraph(attributePaths = {"category"})
-    Optional<Product> findById(@NonNull Long id);
+    @EntityGraph(attributePaths = {"category", "skus", "skus.color", "skus.size"})
+    Optional<Product> findDetailBySlug(@NonNull String slug);
 
     Boolean existsBySlug(String slug);
+
+    @EntityGraph(attributePaths = {"category", "skus", "skus.color", "skus.size"})
+    Optional<Product> findDetailsById(Long id);
 }

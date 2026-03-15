@@ -3,6 +3,7 @@ package github.hqn03.auth_service.controller;
 import github.hqn03.auth_service.dto.product.ProductDetailResponse;
 import github.hqn03.auth_service.dto.product.ProductRequest;
 import github.hqn03.auth_service.dto.product.ProductResponse;
+import github.hqn03.auth_service.dto.product.ProductUpdateRequest;
 import github.hqn03.auth_service.dto.sku.SkuCreateRequest;
 import github.hqn03.auth_service.dto.sku.SkuDetailResponse;
 import github.hqn03.auth_service.service.ProductService;
@@ -50,8 +51,8 @@ public class ProductController {
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:UPDATE')")
-    public ProductDetailResponse updateProduct(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
-        return productService.updateProduct(id, productRequest);
+    public ProductDetailResponse updateProduct(@PathVariable Long id, @RequestBody ProductUpdateRequest request) {
+        return productService.updateProduct(id, request);
     }
 
     @DeleteMapping("/{id}")
