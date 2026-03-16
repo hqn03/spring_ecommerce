@@ -1,5 +1,6 @@
 package github.hqn03.auth_service.security;
 
+import com.sun.security.auth.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,7 +41,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            String user = jwt.getSubject();
+            String username  = jwt.getSubject();
+            Long customerId = jwt.getClaim("customer");
+            JwtPrincipal principal = new JwtPrincipal(customerId, username);
 
             String scope = jwt.getClaim("scope");
             List<SimpleGrantedAuthority> authorities = (scope == null || scope.isBlank())
@@ -49,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .map(SimpleGrantedAuthority::new)
                     .toList();
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (BadJwtException ex) {
             log.error(ex.getMessage());

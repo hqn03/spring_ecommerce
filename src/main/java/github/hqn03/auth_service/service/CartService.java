@@ -48,12 +48,12 @@ public class CartService {
         }
     }
 
-    private Cart createCart(Long  customerId, String sessionId) {
+    public Cart createCart(Long customerId, String sessionId) {
         Customer customer = null;
         if (customerId != null) {
             customer = customerRepository.getReferenceById(customerId);
         }
-        return cartRepository.saveAndFlush(new Cart(customer, sessionId));
+        return new Cart(customer, sessionId);
     }
 
     private Cart getCart(Long customerId, String sessionId) {
@@ -69,7 +69,7 @@ public class CartService {
     }
 
     @Transactional
-    public ItemResponse addItem(ItemAddRequest request, String sessionId) {
+    public CartResponse addItem(ItemAddRequest request, String sessionId) {
         Long customerId = securityService.getCustomerId();
         Cart cart = getCart(customerId, sessionId);
 
@@ -77,13 +77,27 @@ public class CartService {
             cart = createCart(customerId, sessionId);
         }
 
-        final Cart finalCart = cart;
-        CartItem item = cartItemRepository.findByCartAndSkuId(cart, request.skuId())
-                .orElseGet(() -> cartMapper.toCartItem(finalCart, request));
+        CartItem item = cart.getItems().stream()
+                .filter(i -> i.getSku().getId().equals(request.skuId()))
+                .findFirst().orElse(null);
 
-        item.setQuantity(item.getQuantity() + request.quantity());
+        int currentQuantityInCart = (item != null) ? item.getQuantity() : 0;
+        int newTotalQuantity = currentQuantityInCart + request.quantity();
 
-        return cartMapper.toItemResponse(cartItemRepository.save(item));
+        Sku sku = skuRepository.getReferenceById(request.skuId());
+        if (newTotalQuantity > sku.getStockQty()) {
+            throw new AppException("Stock is not available", HttpStatus.BAD_REQUEST);
+        }
+
+        if (item != null) {
+            item.setQuantity(newTotalQuantity);
+        }
+        else {
+            CartItem newItem = cartMapper.toCartItem(cart, sku, request);
+            cart.addItem(newItem);
+        }
+
+        return cartMapper.toCartResponse(cartRepository.save(cart));
     }
 
     public CartResponse getCartDetail(String sessionId) {
@@ -116,5 +130,30 @@ public class CartService {
         validateCartItemOwnership(item, sessionId);
 
         cartItemRepository.delete(item);
+    }
+
+    @Transactional
+    public void  mergeCart(Long customerId, String sessionId) {
+        Cart anonymousCart = cartRepository.findBySessionId(sessionId).orElse(null);
+        if(anonymousCart == null || anonymousCart.getItems().isEmpty()) return;
+
+        Cart userCart = cartRepository.findByCustomerId(customerId)
+                .orElseGet(() -> createCart(customerId, null));
+        userCart.setSessionId(sessionId);
+
+        for(CartItem anonymousItem : anonymousCart.getItems()) {
+            CartItem existingItem = userCart.getItems().stream()
+                    .filter(i -> i.getSku().getId().equals(anonymousItem.getSku().getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if(existingItem != null) {
+                existingItem.setQuantity(existingItem.getQuantity() + anonymousItem.getQuantity());
+            }else {
+                userCart.addItem(anonymousItem);
+            }
+        }
+
+        cartRepository.save(userCart);
     }
 }

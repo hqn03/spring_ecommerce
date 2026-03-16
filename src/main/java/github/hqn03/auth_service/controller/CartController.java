@@ -20,7 +20,7 @@ public class CartController {
     }
 
     @PostMapping
-    public ItemResponse addItem(@RequestBody ItemAddRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
+    public CartResponse addItem(@RequestBody ItemAddRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
         return cartService.addItem(request, sessionId);
     }
 

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Objects;
 
 @Entity
 @Table(name ="cart_items")
@@ -18,21 +20,47 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sku_id", nullable = false)
     private Sku sku;
 
     @Column(nullable = false)
-    private Integer quantity = 1;
+    private Integer quantity = 0;
 
-    public BigDecimal getSubTotal() {
-        if(sku == null || sku.getPrice() == null || this.quantity == null)
-            return BigDecimal.ZERO;
+    public BigDecimal getPrice() {
+        if (sku == null || sku.getPrice() == null) return BigDecimal.ZERO;
 
-        return this.sku.getPrice().multiply(new BigDecimal(this.quantity)) ;
+        BigDecimal originalPrice = sku.getPrice();
+
+        return originalPrice.subtract(sku.getDiscountAmount());
+    }
+
+    public BigDecimal getSubTotal(){
+        if (sku == null || sku.getPrice() == null) return BigDecimal.ZERO;
+
+        return this.getPrice().multiply(BigDecimal.valueOf(this.quantity));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        CartItem that = (CartItem) obj;
+
+        // So sánh dựa trên ID của Sku
+        Long thisSkuId = (sku != null) ? sku.getId() : null;
+        Long thatSkuId = (that.getSku() != null) ? that.getSku().getId() : null;
+
+        return Objects.equals(thisSkuId, thatSkuId);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

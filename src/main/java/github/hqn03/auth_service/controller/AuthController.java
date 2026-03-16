@@ -23,8 +23,8 @@ public class AuthController {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
-        return authService.login(loginRequest);
+    public LoginResponse login(@RequestBody LoginRequest loginRequest, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
+        return authService.login(loginRequest, sessionId);
     }
 
 

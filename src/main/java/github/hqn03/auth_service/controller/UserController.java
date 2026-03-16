@@ -1,6 +1,5 @@
 package github.hqn03.auth_service.controller;
 
-import github.hqn03.auth_service.constant.PermissionConstant;
 import github.hqn03.auth_service.dto.user.CreateUserRequest;
 import github.hqn03.auth_service.dto.user.UpdateUserRequest;
 import github.hqn03.auth_service.dto.user.UserResponse;
@@ -39,21 +38,21 @@ public class UserController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_READ + "')")
+    @PreAuthorize("hasAuthority('USER:READ')")
     public UserResponse getUser(@PathVariable Long id) {
         return userService.getById(id);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_UPDATE + "')")
+    @PreAuthorize("hasAuthority('USER:UPDATE')")
     public UserResponse updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest updateUserRequest) {
         return userService.updateUser(id, updateUserRequest);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_DELETE + "')")
+    @PreAuthorize("hasAuthority('USER:DELETE')")
     public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return "Deleted successfully";

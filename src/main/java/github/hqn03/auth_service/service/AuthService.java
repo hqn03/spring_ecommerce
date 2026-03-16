@@ -6,6 +6,8 @@ import github.hqn03.auth_service.dto.auth.RegisterRequest;
 import github.hqn03.auth_service.dto.auth.RegisterResponse;
 import github.hqn03.auth_service.model.User;
 import github.hqn03.auth_service.model.VerificationToken;
+import github.hqn03.auth_service.repository.VerificationTokenRepository;
+import github.hqn03.auth_service.security.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +33,7 @@ public class AuthService {
     private final JwtEncoder jwtEncoder;
     private final TokenService tokenService;
     private final UserService userService;
+    private final CartService cartService;
 
     @Transactional
     public RegisterResponse register(RegisterRequest registerRequest) {
@@ -42,8 +45,8 @@ public class AuthService {
 
     ;
 
-    public LoginResponse login(LoginRequest loginRequest) {
-
+    @Transactional
+    public LoginResponse login(LoginRequest loginRequest, String sessionId) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.identifier(),
                 loginRequest.password()
@@ -51,8 +54,15 @@ public class AuthService {
 
         Authentication authentication = authenticationManager.authenticate(authToken);
         User user = (User) authentication.getPrincipal();
-        var token = generateToken(user);
 
+        boolean isCustomer = user.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
+
+        if(isCustomer){
+            cartService.mergeCart(user.getCustomer().getId(), sessionId);
+        }
+
+        var token = generateToken(user);
         return new LoginResponse(token);
     }
 
@@ -63,12 +73,15 @@ public class AuthService {
                 .stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
 
+
+
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("dev-service")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(user.getUsername())
                 .claim("scope", scope)
+                .claim("customer", user.getCustomer().getId())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

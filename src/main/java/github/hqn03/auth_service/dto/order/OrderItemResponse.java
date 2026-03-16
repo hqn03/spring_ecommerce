@@ -1,15 +1,12 @@
-package github.hqn03.auth_service.dto.cart;
+package github.hqn03.auth_service.dto.order;
 
 import java.math.BigDecimal;
 
-public record ItemResponse(
-        Long id,
+public record OrderItemResponse(
         Long skuId,
         String productName,
         String productSlug,
-        String colorName,
-        String colorCode,
-        String sizeName,
+        String variant,
         Integer quantity,
         BigDecimal originalPrice,
         BigDecimal discountAmount,

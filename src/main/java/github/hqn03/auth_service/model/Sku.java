@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.SoftDelete;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Entity
 @Table(name = "skus")
@@ -37,4 +38,15 @@ public class Sku extends BaseEntity {
     private BigDecimal price = BigDecimal.ZERO;
 
     private Integer stockQty = 0;
+
+    private Integer discountPercent  = 0;
+
+    public BigDecimal getDiscountAmount() {
+        if (discountPercent == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return this.price.multiply(BigDecimal.valueOf(discountPercent))
+                .divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+    }
 }

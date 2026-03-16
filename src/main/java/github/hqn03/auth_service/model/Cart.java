@@ -6,8 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "carts")
@@ -26,8 +25,18 @@ public class Cart extends BaseEntity {
     @Column(unique = true)
     private  String sessionId;
 
-    @OneToMany(mappedBy = "cart")
-    private List<CartItem> items = new ArrayList<>();
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CartItem> items = new HashSet<>();
+
+    public void addItem(CartItem item) {
+        this.items.add(item);
+        item.setCart(this);
+    }
+
+    public void removeItem(CartItem item) {
+        this.items.remove(item);
+        item.setCart(null);
+    }
 
     public Cart(Customer customer, String sessionId) {
         this.customer = customer;
