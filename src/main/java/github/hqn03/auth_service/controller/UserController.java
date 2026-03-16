@@ -1,12 +1,9 @@
 package github.hqn03.auth_service.controller;
 
-import github.hqn03.auth_service.constant.PermissionConstant;
 import github.hqn03.auth_service.dto.user.CreateUserRequest;
 import github.hqn03.auth_service.dto.user.UpdateUserRequest;
 import github.hqn03.auth_service.dto.user.UserResponse;
 import github.hqn03.auth_service.service.UserService;
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -17,8 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -28,7 +23,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_CREATE + "')")
+    @PreAuthorize("hasAuthority('USER:CREATE')")
     public UserResponse createUser(@RequestBody CreateUserRequest createUserRequest) {
         return userService.createUser(createUserRequest);
     }
@@ -37,27 +32,27 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:READ')")
     public Page<UserResponse> getUsers(
-           @ParameterObject @PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "id") Pageable pageable) {
         return userService.getAll(pageable);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_READ + "')")
+    @PreAuthorize("hasAuthority('USER:READ')")
     public UserResponse getUser(@PathVariable Long id) {
         return userService.getById(id);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_UPDATE + "')")
+    @PreAuthorize("hasAuthority('USER:UPDATE')")
     public UserResponse updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest updateUserRequest) {
         return userService.updateUser(id, updateUserRequest);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('" + PermissionConstant.USER_DELETE + "')")
+    @PreAuthorize("hasAuthority('USER:DELETE')")
     public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return "Deleted successfully";

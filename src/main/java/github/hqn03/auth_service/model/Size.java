@@ -4,25 +4,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
+import org.hibernate.annotations.SoftDelete;
 
 @Entity
 @Table(name = "sizes")
+@SoftDelete
 @NoArgsConstructor
 @Getter
 @Setter
-public class Size {
+public class Size extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "name", nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "description")
     private String description;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt =  LocalDateTime.now();
 }

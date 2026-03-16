@@ -6,5 +6,7 @@ CREATE TABLE categories
     description TEXT,
     parent_id   INT       DEFAULT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP,
+    deleted  BOOLEAN DEFAULT 0,
     CONSTRAINT fk_category_parent FOREIGN KEY (parent_id) REFERENCES categories (id) ON DELETE SET NULL
-)
+);

@@ -1,13 +1,14 @@
 package github.hqn03.auth_service.controller;
 
-import github.hqn03.auth_service.dto.role.*;
+import github.hqn03.auth_service.dto.role.RoleDetailResponse;
+import github.hqn03.auth_service.dto.role.RoleRequest;
+import github.hqn03.auth_service.dto.role.RoleResponse;
 import github.hqn03.auth_service.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/roles")
@@ -17,31 +18,31 @@ public class RoleController {
 
     @GetMapping("/")
     @ResponseStatus(HttpStatus.OK)
-    public List<RoleResponse> getAll(){
+    public List<RoleResponse> getAll() {
         return roleService.getAll();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RoleDetailResponse getRole(@PathVariable Integer id){
+    public RoleDetailResponse getRole(@PathVariable Integer id) {
         return roleService.getRole(id);
     }
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public RoleDetailResponse createRole(@RequestBody RoleRequest request){
+    public RoleDetailResponse createRole(@RequestBody RoleRequest request) {
         return roleService.createRole(request);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RoleDetailResponse updateRole(@PathVariable Integer id, @RequestBody RoleRequest roleRequest){
+    public RoleDetailResponse updateRole(@PathVariable Integer id, @RequestBody RoleRequest roleRequest) {
         return roleService.updateRole(id, roleRequest);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public String deleteRole(@PathVariable Integer id){
+    public String deleteRole(@PathVariable Integer id) {
         return roleService.deleteRole(id);
     }
 }

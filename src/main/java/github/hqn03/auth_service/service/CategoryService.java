@@ -17,15 +17,10 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
-
-    @Transactional(readOnly = true)
-    public Category findById(Integer id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category id " + id + " is not found."));
-    }
 
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
@@ -44,7 +39,6 @@ public class CategoryService {
         return categoryMapper.toCategoryResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public List<CategoryResponse> getCategories() {
         return categoryRepository.findAll()
                 .stream()
@@ -52,37 +46,38 @@ public class CategoryService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Integer id) {
-        Category category = this.findById(id);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category id " + id + " is not found."));
 
         return categoryMapper.toCategoryResponse(category);
     }
 
     @Transactional
     public CategoryResponse updateCategory(Integer id, CategoryRequest request) {
-        Category category = this.findById(id);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category id " + id + " is not found."));
 
         categoryMapper.updateCategory(request, category);
 
         Integer currentParentId = (category.getParent() != null) ? category.getParent().getId() : null;
         Integer newParentId = request.parentId();
 
-        if(!Objects.equals(currentParentId, newParentId)) {
-            if(newParentId != null){
+        if (!Objects.equals(currentParentId, newParentId)) {
+            if (newParentId != null) {
                 if (id.equals(newParentId)) {
                     throw new AppException("A category cannot be its own parent category.", HttpStatus.BAD_REQUEST);
                 }
 
-                Category newParent = this.findById(newParentId);
+                Category newParent = categoryRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Category id " + id + " is not found."));
 
-                if (this.isChildOf(newParent, category)){
-                    throw new AppException("Cannot select child category as parent category.",  HttpStatus.BAD_REQUEST);
+                if (this.isChildOf(newParent, category)) {
+                    throw new AppException("Cannot select child category as parent category.", HttpStatus.BAD_REQUEST);
                 }
 
                 category.setParent(newParent);
-            }
-            else {
+            } else {
                 category.setParent(null);
             }
         }
@@ -93,8 +88,9 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategory(int id) {
-        Category category = this.findById(id);
+    public void deleteCategory(Integer id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category id " + id + " is not found."));
 
         categoryRepository.delete(category);
     }
@@ -102,7 +98,7 @@ public class CategoryService {
     private boolean isChildOf(Category potentialParent, Category currentCategory) {
         Category temp = potentialParent.getParent();
         while (temp != null) {
-            if(temp.getId().equals(currentCategory.getId())){
+            if (temp.getId().equals(currentCategory.getId())) {
                 return true;
             }
             temp = temp.getParent();

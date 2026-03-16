@@ -18,7 +18,7 @@ public interface CategoryMapper {
 
     void updateCategory(CategoryRequest request, @MappingTarget Category category);
 
-    default CategoryDTO toCategoryDTO(Category category){
+    default CategoryDTO toCategoryDTO(Category category) {
         if (category == null) return null;
         return new CategoryDTO(category.getId(), category.getSlug(), category.getName());
     }

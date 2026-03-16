@@ -9,48 +9,42 @@ import github.hqn03.auth_service.repository.SizeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class SizeService {
     private final SizeRepository sizeRepository;
     private final SizeMapper sizeMapper;
 
-    @Transactional(readOnly = true)
-    public Size findById(Integer id){
-        return sizeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Size id "+ id + " not found"));
-    }
-
     @Transactional
     public SizeResponse createSize(SizeRequest request) {
         Size size = sizeMapper.toEntity(request);
-        Size saved =  sizeRepository.save(size);
+        Size saved = sizeRepository.save(size);
 
         return sizeMapper.toSizeResponse(saved);
     }
 
-    @Transactional(readOnly = true)
-    public List<SizeResponse> getSizes(){
+    public List<SizeResponse> getSizes() {
         return sizeRepository.findAll()
                 .stream()
                 .map(sizeMapper::toSizeResponse)
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public SizeResponse getSizeById(int id) {
-        Size size = this.findById(id);
+        Size size = sizeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Size id " + id + " not found"));
 
         return sizeMapper.toSizeResponse(size);
     }
 
     @Transactional
-    public SizeResponse updateSize(int id,SizeRequest request) {
-        Size size = this.findById(id);
+    public SizeResponse updateSize(int id, SizeRequest request) {
+        Size size = sizeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Size id " + id + " not found"));
 
         sizeMapper.updateSize(request, size);
         Size updated = sizeRepository.save(size);
@@ -60,7 +54,8 @@ public class SizeService {
 
     @Transactional
     public void deleteSize(int id) {
-        Size size = this.findById(id);
+        Size size = sizeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Size id " + id + " not found"));
 
         sizeRepository.delete(size);
     }

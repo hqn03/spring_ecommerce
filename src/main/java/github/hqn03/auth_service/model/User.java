@@ -5,14 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.DialectOverride;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +22,7 @@ import java.util.Set;
 @Setter
 @SQLRestriction("deleted_at = 0")
 @SQLDelete(sql = "UPDATE users SET deleted_at = UNIX_TIMESTAMP(NOW(3)) * 1000 WHERE id = ?")
-public class User implements UserDetails {
+public class User extends BaseEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -45,26 +43,18 @@ public class User implements UserDetails {
     private boolean blocked = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @BatchSize(size=20)
+    @BatchSize(size = 20)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", nullable = false),
             inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false)
     )
     private Set<Role> roles = new HashSet<>();
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @OneToOne(mappedBy = "user")
+    private Customer customer;
 
-    @Column(name="updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    @Column(name = "deleted_at", nullable = false)
+    @Column(nullable = false)
     private Long deletedAt = 0L;
-
-    @PreUpdate
-    public void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -101,7 +91,7 @@ public class User implements UserDetails {
         return this.enabled;
     }
 
-    public void addRole(Role role){
+    public void addRole(Role role) {
         if (this.roles == null) {
             this.roles = new HashSet<>();
         }

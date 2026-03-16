@@ -9,21 +9,15 @@ import github.hqn03.auth_service.repository.ColorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ColorService {
     private final ColorRepository colorRepository;
     private final ColorMapper colorMapper;
-
-    @Transactional(readOnly = true)
-    public Color findById(Integer id){
-        return colorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Color id " + id + " not found"));
-    }
 
     @Transactional
     public ColorResponse createColor(ColorRequest request) {
@@ -32,7 +26,6 @@ public class ColorService {
         return colorMapper.toColorResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public List<ColorResponse> getColors() {
         return colorRepository.findAll()
                 .stream()
@@ -40,15 +33,16 @@ public class ColorService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public ColorResponse getColorById(Integer id) {
-        Color color = this.findById(id);
+        Color color = colorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Color id " + id + " not found"));
         return colorMapper.toColorResponse(color);
     }
 
     @Transactional
-    public ColorResponse updateColor(Integer id,  ColorRequest request) {
-        Color color = this.findById(id);
+    public ColorResponse updateColor(Integer id, ColorRequest request) {
+        Color color = colorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Color id " + id + " not found"));
 
         colorMapper.updateColorFromRequest(request, color);
         Color updated = colorRepository.save(color);
@@ -57,7 +51,8 @@ public class ColorService {
 
     @Transactional
     public void deleteColor(Integer id) {
-        Color color = this.findById(id);
+        Color color = colorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Color id " + id + " not found"));
         colorRepository.delete(color);
     }
 }

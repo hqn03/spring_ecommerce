@@ -6,8 +6,9 @@ CREATE TABLE products
     description TEXT,
     category_id INT,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP,
+    deleted  BOOLEAN DEFAULT 0,
 
     CONSTRAINT unique_slug UNIQUE (slug),
-    CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE SET NULL
-)
+    CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES categories (id)
+);
