@@ -8,6 +8,8 @@ import github.hqn03.auth_service.dto.sku.SkuCreateRequest;
 import github.hqn03.auth_service.dto.sku.SkuDetailResponse;
 import github.hqn03.auth_service.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +32,8 @@ public class ProductController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('PRODUCT:READ')")
-    public List<ProductResponse> getProducts() {
-        return productService.getProducts();
+    public List<ProductResponse> getProducts(@ParameterObject Pageable pageable) {
+        return productService.getProducts(pageable);
     }
 
     @GetMapping("/id/{id}")

@@ -170,3 +170,33 @@ WHERE p.id BETWEEN (SELECT MIN(id) FROM (SELECT id FROM products ORDER BY id DES
   AND c.name IN ('Black', 'White')
   AND s.name IN ('S', 'M', 'L', 'XL', 'XXL');
 
+-- INSERT PRODUCT IMAGES
+INSERT INTO product_images (product_id, sku_id, image_url, is_main, sort_order)
+
+-- PHẦN A: 5 ảnh chung cho mỗi sản phẩm
+SELECT
+    p.id as product_id,
+    NULL as sku_id,
+    CONCAT('https://picsum.photos/seed/p-', p.id, '-', n.num, '/800/1000') as image_url,
+    (n.num = 1) as is_main, -- Chỉ ảnh đầu tiên (số 1) là ảnh chính
+    n.num as sort_order
+FROM products p
+         CROSS JOIN (
+    SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+) n
+WHERE p.id BETWEEN (SELECT MIN(id) FROM (SELECT id FROM products ORDER BY id DESC LIMIT 20) AS t) AND (SELECT MAX(id) FROM products)
+
+UNION ALL
+
+-- PHẦN B: 3 ảnh riêng cho mỗi SKU
+SELECT
+    s.product_id,
+    s.id as sku_id,
+    CONCAT('https://picsum.photos/seed/sku-', s.id, '-', n.num, '/800/1000') as image_url,
+    FALSE as is_main,
+    (n.num + 10) as sort_order -- Đặt thứ tự lớn hơn để nằm sau ảnh chung
+FROM skus s
+         CROSS JOIN (
+    SELECT 1 AS num UNION ALL SELECT 2 UNION ALL SELECT 3
+) n
+WHERE s.product_id BETWEEN (SELECT MIN(id) FROM (SELECT id FROM products ORDER BY id DESC LIMIT 20) AS t) AND (SELECT MAX(id) FROM products);

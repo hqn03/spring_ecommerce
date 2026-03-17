@@ -74,15 +74,18 @@ public class AuthService {
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
 
 
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        var claimsBuilder = JwtClaimsSet.builder()
                 .issuer("dev-service")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(user.getUsername())
-                .claim("scope", scope)
-                .claim("customer", user.getCustomer().getId())
-                .build();
+                .claim("scope", scope);
+
+        if (user.getCustomer() != null) {
+            claimsBuilder.claim("customer", user.getCustomer().getId());
+        }
+
+        JwtClaimsSet claims = claimsBuilder.build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }

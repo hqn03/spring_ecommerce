@@ -18,6 +18,7 @@ import github.hqn03.auth_service.repository.SizeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
+    private final ImageService imageService;
 
     @Transactional
     public ProductDetailResponse createProduct(ProductRequest productRequest) {
@@ -48,11 +50,25 @@ public class ProductService {
             sku.setSize(sizeRepository.getReferenceById(sku.getSize().getId()));
         });
 
-        return productMapper.toProductDetailResponse(productRepository.save(product));
+        Product saved = productRepository.save(product);
+
+        imageService.createProductImages(saved.getId(), null, productRequest.generalImages());
+
+        productRequest.skus().forEach(skuReq -> {
+            saved.getSkus().stream()
+                    .filter(s -> s.getSkuCode().equals(skuReq.skuCode()))
+                    .findFirst()
+                    .ifPresent(sku -> {
+                        imageService.createProductImages(saved.getId(), sku.getId(), skuReq.images());
+                    });
+        });
+
+
+        return productMapper.toProductDetailResponse(saved);
     }
 
-    public List<ProductResponse> getProducts() {
-        return productRepository.findAll()
+    public List<ProductResponse> getProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
                 .stream()
                 .map(productMapper::toProductResponse)
                 .toList();

@@ -8,6 +8,10 @@ import org.hibernate.annotations.SoftDelete;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "skus")
@@ -40,6 +44,9 @@ public class Sku extends BaseEntity {
     private Integer stockQty = 0;
 
     private Integer discountPercent  = 0;
+
+    @OneToMany(mappedBy = "sku",  cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProductImage> images = new LinkedHashSet<>();
 
     public BigDecimal getDiscountAmount() {
         if (discountPercent == 0) {

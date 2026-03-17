@@ -6,8 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SoftDelete;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "products")
@@ -34,6 +33,9 @@ public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Sku> skus = new HashSet<>();
+
+    @OneToMany(mappedBy = "product",  cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProductImage> images = new LinkedHashSet<>();
 
     public void addSku(Sku sku) {
         skus.add(sku);
