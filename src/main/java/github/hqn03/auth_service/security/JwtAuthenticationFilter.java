@@ -1,6 +1,5 @@
 package github.hqn03.auth_service.security;
 
-import com.sun.security.auth.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

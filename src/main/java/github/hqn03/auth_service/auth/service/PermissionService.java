@@ -1,0 +1,25 @@
+package github.hqn03.auth_service.auth.service;
+
+import github.hqn03.auth_service.auth.entity.Permission;
+import github.hqn03.auth_service.auth.repository.PermissionRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Log4j2
+@Transactional(readOnly = true)
+public class PermissionService {
+    private final PermissionRepository permissionRepository;
+
+    @Cacheable(value = "permissions")
+    public List<Permission> getAll() {
+        log.info("GET TO ALL PERMISSIONS");
+        return permissionRepository.findAll();
+    }
+}
