@@ -10,7 +10,6 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    boolean existsByUsernameOrEmailAndIdNot(String username, String email, Long id);
     boolean existsByUsernameOrEmail(String username, String email);
 
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})

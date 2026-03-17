@@ -141,4 +141,11 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found"));
         userRepository.delete(user);
     }
+
+    public void enableUser(Long id){
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setEnabled(true);
+    }
 }

@@ -20,3 +20,6 @@ spring:
     web:
       pageable:
         serialization-mode: via_dto
+    redis:
+      host: localhost
+      port: 6379

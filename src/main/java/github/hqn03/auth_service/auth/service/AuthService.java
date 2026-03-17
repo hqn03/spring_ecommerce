@@ -6,10 +6,14 @@ import github.hqn03.auth_service.auth.dto.auth.RegisterRequest;
 import github.hqn03.auth_service.auth.dto.auth.RegisterResponse;
 import github.hqn03.auth_service.auth.entity.VerificationToken;
 import github.hqn03.auth_service.cart.service.CartService;
+import github.hqn03.auth_service.common.exception.AppException;
+import github.hqn03.auth_service.common.service.RedisService;
 import github.hqn03.auth_service.user.entity.User;
 import github.hqn03.auth_service.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -31,22 +36,23 @@ import java.util.stream.Collectors;
 public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtEncoder jwtEncoder;
-    private final TokenService tokenService;
     private final UserService userService;
     private final CartService cartService;
+    private final RedisService redisService;
 
     @Transactional
-    public RegisterResponse register(RegisterRequest registerRequest) {
+    public String register(RegisterRequest registerRequest) {
         User user = userService.registerUser(registerRequest);
-        VerificationToken token = tokenService.generateVerificationToken(user.getId());
+        String token = UUID.randomUUID().toString();
+        redisService.set("verify_email:" + token, user.getId(), 15);
 
-        return new RegisterResponse("Registration successful. Please check your email to verify your account.");
+        log.info(token);
+        //Call mail service
+        return "Registration successful. Please check your email to verify your account.";
     }
 
-    ;
-
     @Transactional
-    public LoginResponse login(LoginRequest loginRequest, String sessionId) {
+    public String login(LoginRequest loginRequest, String sessionId) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.identifier(),
                 loginRequest.password()
@@ -62,8 +68,22 @@ public class AuthService {
             cartService.mergeCart(user.getCustomer().getId(), sessionId);
         }
 
-        var token = generateToken(user);
-        return new LoginResponse(token);
+        return generateToken(user);
+    }
+
+    @Transactional
+    public String verifyToken(String token) {
+        String key = "verify_email:" + token;
+        Object value = redisService.get(key);
+
+        if(value == null) throw new AppException("Token is invalid", HttpStatus.NOT_FOUND);
+
+        Long id = Long.valueOf(value.toString());
+
+        userService.enableUser(id);
+        redisService.delete(key);
+
+        return "Account verified successfully!";
     }
 
     private String generateToken(User user) {
