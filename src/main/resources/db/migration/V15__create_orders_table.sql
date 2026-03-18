@@ -2,9 +2,10 @@ CREATE TABLE orders
 (
     id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
     customer_id        BIGINT         NOT NULL,
+    order_code         VARCHAR(50)    NOT NULL,
     order_date         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_amount       DECIMAL(15, 2) NOT NULL,
-    status             ENUM('pending','processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+    status             ENUM('PENDING','PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED') DEFAULT 'PENDING',
 
     shipping_full_name VARCHAR(255)   NOT NULL,
     shipping_phone     VARCHAR(20)    NOT NULL,

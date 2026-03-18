@@ -15,11 +15,16 @@ public class SecurityService {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
+    public Long getUserId() {
+        Authentication auth = getAuth();
+        if(!(auth.getPrincipal() instanceof JwtPrincipal)) return null;
+        return Long.valueOf(((JwtPrincipal) auth.getPrincipal()).userId());
+    }
+
     public Long getCustomerId(){
         Authentication auth = getAuth();
         if(!(auth.getPrincipal() instanceof JwtPrincipal)) return null;
-
-        return  ((JwtPrincipal) auth.getPrincipal()).customerId();
+        return Long.valueOf(((JwtPrincipal) auth.getPrincipal()).customerId());
     }
 
     public String getUsername() {

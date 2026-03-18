@@ -40,9 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            String username  = jwt.getSubject();
-            Long customerId = jwt.getClaim("customer");
-            JwtPrincipal principal = new JwtPrincipal(customerId, username);
+
+            JwtPrincipal principal = new JwtPrincipal(jwt.getSubject(),  jwt.getClaim("customer").toString());
 
             String scope = jwt.getClaim("scope");
             List<SimpleGrantedAuthority> authorities = (scope == null || scope.isBlank())

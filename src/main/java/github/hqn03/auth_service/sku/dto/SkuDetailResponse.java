@@ -5,7 +5,7 @@ import java.util.List;
 
 public record SkuDetailResponse(
         Long id,
-        String skuCode,
+        String code,
         BigDecimal price,
         Integer stockQty,
         String colorName,

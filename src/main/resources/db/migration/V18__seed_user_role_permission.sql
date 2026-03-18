@@ -155,7 +155,7 @@ VALUES
 -- Sunglasses (ID 15)
 ('Aviator Sunglasses', 'aviator-sun', 'UV400 protection', 15);
 
-INSERT IGNORE INTO skus (product_id, color_id, size_id, sku_code, price, stock_qty)
+INSERT IGNORE INTO skus (product_id, color_id, size_id, code, price, stock_qty)
 SELECT
     p.id,
     c.id,

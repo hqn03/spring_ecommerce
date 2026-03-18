@@ -40,8 +40,8 @@ public class SkuService {
     public SkuDetailResponse createSku(Long productId, SkuCreateRequest request) {
         Product product = productRepository.getReferenceById(productId);
 
-        if (skuRepository.existsBySkuCode(request.skuCode())) {
-            throw new AppException("SKU code " + request.skuCode() + " is already in use.", HttpStatus.BAD_REQUEST);
+        if (skuRepository.existsByCode(request.code())) {
+            throw new AppException("SKU code " + request.code() + " is already in use.", HttpStatus.BAD_REQUEST);
         }
 
         Sku newSku = skuMapper.toEntity(request);

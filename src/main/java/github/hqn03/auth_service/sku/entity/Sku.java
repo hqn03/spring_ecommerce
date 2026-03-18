@@ -40,7 +40,7 @@ public class Sku extends BaseEntity {
     private Size size;
 
     @Column(unique = true, nullable = false)
-    private String skuCode;
+    private String code;
 
     private BigDecimal price = BigDecimal.ZERO;
 

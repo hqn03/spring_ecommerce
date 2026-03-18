@@ -54,7 +54,7 @@ public class ProductService {
 
         productRequest.skus().forEach(skuReq -> {
             saved.getSkus().stream()
-                    .filter(s -> s.getSkuCode().equals(skuReq.skuCode()))
+                    .filter(s -> s.getCode().equals(skuReq.code()))
                     .findFirst()
                     .ifPresent(sku -> {
                         imageService.createProductImages(saved.getId(), sku.getId(), skuReq.images());

@@ -98,8 +98,11 @@ public class AuthService {
                 .issuer("dev-service")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
-                .subject(user.getUsername())
-                .claim("scope", scope);
+                .subject(String.valueOf(user.getId()))
+                .claim("scope", scope)
+                .claim("jti", UUID.randomUUID().toString())
+                .claim("iat", Instant.now().getEpochSecond())
+                .claim("nbf", Instant.now().getEpochSecond());
 
         if (user.getCustomer() != null) {
             claimsBuilder.claim("customer", user.getCustomer().getId());
