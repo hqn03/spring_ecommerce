@@ -9,7 +9,5 @@ public interface CartRepository extends JpaRepository<Cart,Long> {
 
     Optional<Cart> findByCustomerId(Long customerId);
 
-    Optional<Cart> findBySessionId(String sessionId);
-
     Long id(Long id);
 }

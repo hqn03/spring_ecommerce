@@ -1,9 +1,6 @@
 package github.hqn03.auth_service.cart.controller;
 
-import github.hqn03.auth_service.cart.dto.CartResponse;
-import github.hqn03.auth_service.cart.dto.ItemAddRequest;
-import github.hqn03.auth_service.cart.dto.ItemResponse;
-import github.hqn03.auth_service.cart.dto.QuantityUpdateRequest;
+import github.hqn03.auth_service.cart.dto.*;
 import github.hqn03.auth_service.cart.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +17,7 @@ public class CartController {
     }
 
     @PostMapping
-    public CartResponse addItem(@RequestBody ItemAddRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
+    public CartSummaryResponse addItem(@RequestBody ItemAddRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
         return cartService.addItem(request, sessionId);
     }
 

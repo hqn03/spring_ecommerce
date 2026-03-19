@@ -3,7 +3,6 @@ package github.hqn03.auth_service.cart.dto;
 import java.math.BigDecimal;
 
 public record ItemResponse(
-        Long id,
         Long skuId,
         String productName,
         String productSlug,

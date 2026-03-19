@@ -51,7 +51,6 @@ public class CartItem {
 
         CartItem that = (CartItem) obj;
 
-        // So sánh dựa trên ID của Sku
         Long thisSkuId = (sku != null) ? sku.getId() : null;
         Long thatSkuId = (that.getSku() != null) ? that.getSku().getId() : null;
 
@@ -60,6 +59,7 @@ public class CartItem {
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        Long skuId = (sku != null) ? sku.getId() : null;
+        return Objects.hash(skuId);
     }
 }

@@ -21,12 +21,8 @@ public class Cart extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id", unique = true)
-    private Customer customer;
-
-    @Column(unique = true)
-    private  String sessionId;
+    @Column(nullable = false, unique = true)
+    private Long customerId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CartItem> items = new HashSet<>();
@@ -38,12 +34,6 @@ public class Cart extends BaseEntity {
 
     public void removeItem(CartItem item) {
         this.items.remove(item);
-        item.setCart(null);
-    }
-
-    public Cart(Customer customer, String sessionId) {
-        this.customer = customer;
-        this.sessionId = sessionId;
     }
 
     public BigDecimal getTotalPrice() {
