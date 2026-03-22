@@ -1,8 +1,12 @@
 package github.hqn03.auth_service.cart.controller;
 
-import github.hqn03.auth_service.cart.dto.*;
+import github.hqn03.auth_service.cart.dto.CartItemDto;
+import github.hqn03.auth_service.cart.dto.CartResponse;
+import github.hqn03.auth_service.cart.dto.ItemAddRequest;
+import github.hqn03.auth_service.cart.dto.QuantityUpdateRequest;
 import github.hqn03.auth_service.cart.service.CartService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,23 +17,23 @@ public class CartController {
 
     @GetMapping("/me")
     public CartResponse getMyCart(@RequestHeader(value = "X-Session-ID", required = false) String sessionId){
-        return cartService.getCartDetail(sessionId);
+        return cartService.getCart(sessionId);
     }
 
     @PostMapping
-    public CartSummaryResponse addItem(@RequestBody ItemAddRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
-        return cartService.addItem(request, sessionId);
+    public ResponseEntity<Integer> addItem(@RequestBody ItemAddRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
+        return ResponseEntity.ok(cartService.addItem(request, sessionId));
     }
 
     @PutMapping
-    public ItemResponse updateItemQuantity(@RequestBody QuantityUpdateRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
-        return cartService.updateItemQuantity(request, sessionId);
+    public ResponseEntity<CartItemDto> updateItemQuantity(@RequestBody QuantityUpdateRequest request, @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
+        return ResponseEntity.ok(cartService.updateQuantity(request, sessionId));
     }
 
-    @DeleteMapping("/item/{id}")
-    public String deleteItem(@PathVariable Long id,  @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
-        cartService.deleteItem(id, sessionId);
-        return "Success";
+    @DeleteMapping("/sku/{skuId}")
+    public ResponseEntity<Integer> deleteItem(@PathVariable Long skuId,  @RequestHeader(value = "X-Session-ID", required = false) String sessionId) {
+        Integer remainingTotal = cartService.deleteItem(skuId, sessionId);
+        return ResponseEntity.ok(remainingTotal);
     }
 
 }

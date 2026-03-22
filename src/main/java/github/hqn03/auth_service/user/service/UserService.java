@@ -5,7 +5,6 @@ import github.hqn03.auth_service.auth.entity.Role;
 import github.hqn03.auth_service.auth.service.RoleService;
 import github.hqn03.auth_service.common.exception.AppException;
 import github.hqn03.auth_service.common.exception.ResourceNotFoundException;
-import github.hqn03.auth_service.customer.service.CustomerService;
 import github.hqn03.auth_service.security.SecurityService;
 import github.hqn03.auth_service.user.dto.CreateUserRequest;
 import github.hqn03.auth_service.user.dto.UpdateUserRequest;
@@ -24,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,11 +38,27 @@ public class UserService {
     private final SecurityService securityService;
     private final UserMapper userMapper;
     private final RoleService roleService;
-    private final CustomerService customerService;
 
-    private User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found"));
+    @Transactional
+    public User getOrCreateGuestUser(String email, String username, String fullName, String address, String phone){
+        return  userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = User.builder()
+                    .email(email)
+                    .username(username)
+                    .fullName(fullName)
+                    .address(address)
+                    .phone(phone)
+                    .enabled(true)
+                    .roles(Set.of(roleService.getRoleGuest()))
+                    .deletedAt(0L)
+                    .build();
+
+                    return userRepository.save(newUser);
+        });
+    }
+
+    public Optional<User> findById(Long id){
+        return userRepository.findById(id);
     }
 
     private void validateRoleAssignment(Set<Role> targetRoles) {
@@ -64,9 +81,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.addRole(roleService.getRoleUser());
 
-        User saved = userRepository.save(user);
-        customerService.createCustomer(saved.getId(), request);
-        return saved;
+        return userRepository.save(user);
     }
 
     @Transactional
@@ -75,7 +90,7 @@ public class UserService {
             throw new AppException("Username or email already exists", HttpStatus.BAD_REQUEST);
         };
 
-        String adminUsername = securityService.getUsername();
+        Long adminId = securityService.getUserId();
         Set<Role> roles;
         if(request.roleIds() == null || request.roleIds().isEmpty()){
             roles = new HashSet<>();
@@ -93,7 +108,7 @@ public class UserService {
         Set<String> rolesName = roles.stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());
-        log.info("Admin '{}' created user '{}' with email '{}' and roles {}", adminUsername, saved.getUsername(), saved.getEmail(), rolesName);
+        log.info("Admin '{}' created user '{}' with email '{}' and roles {}", adminId, saved.getUsername(), saved.getEmail(), rolesName);
 
         return userMapper.toUserResponse(saved);
     }
@@ -112,7 +127,7 @@ public class UserService {
 
     @Transactional
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
-        User user = findById(id);
+        User user = findById(id).orElseThrow(() -> new ResourceNotFoundException("user not found"));
 
         if (userRepository.existsByUsernameAndIdNot(request.username(), id)) {
             throw new AppException("Username already taken", HttpStatus.BAD_REQUEST);
@@ -129,8 +144,8 @@ public class UserService {
             user.setRoles(roles);
         }
 
-        String adminUsername = securityService.getUsername();
-        log.info("Admin '{}' updated user ID {}", adminUsername, id);
+        Long adminId = securityService.getUserId();
+        log.info("Admin '{}' updated user ID {}", adminId, id);
 
         return userMapper.toUserResponse(user);
     }

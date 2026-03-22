@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -103,7 +104,6 @@ public class ProductService {
         productRepository.delete(product);
     }
 
-    @Transactional
     public SkuDetailResponse addSku(Long productId, SkuCreateRequest request){
         return skuService.createSku(productId, request);
     }

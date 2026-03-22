@@ -6,13 +6,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.SoftDelete;
 
 import java.util.List;
 
 @Entity
 @Table(name = "categories")
-@SoftDelete
 @NoArgsConstructor
 @Getter
 @Setter
@@ -29,7 +27,7 @@ public class Category extends BaseEntity {
 
     private String description;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Category parent;
 

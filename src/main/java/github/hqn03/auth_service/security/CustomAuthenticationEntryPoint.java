@@ -24,7 +24,14 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
 
-        log.error("Authentication error: {}", authException.getMessage());
+        // Log thêm URL để biết chính xác thằng nào đang bị chặn
+        log.error("Auth Error tại URL: {} | Lỗi: {}", request.getRequestURI(), authException.getMessage());
+        // Kiểm tra xem có phải lỗi từ hệ thống đẩy sang /error không
+        Object exception = request.getAttribute("jakarta.servlet.error.exception");
+        if (exception != null) {
+            log.error("Lỗi gốc gây ra redirect sang /error: ", (Throwable) exception);
+        }
+//        log.error("Authentication error: {}", authException.getMessage());
 
         ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
 

@@ -2,11 +2,9 @@ package github.hqn03.auth_service.order.entity;
 
 import github.hqn03.auth_service.common.constant.OrderStatus;
 import github.hqn03.auth_service.common.entity.BaseEntity;
-import github.hqn03.auth_service.customer.entity.Customer;
+import github.hqn03.auth_service.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,18 +19,21 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private String orderCode;
 
+    @Builder.Default
     private LocalDateTime orderDate =  LocalDateTime.now();
 
     @Column(nullable = false)

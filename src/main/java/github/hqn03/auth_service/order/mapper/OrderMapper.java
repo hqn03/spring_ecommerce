@@ -1,33 +1,28 @@
 package github.hqn03.auth_service.order.mapper;
 
-import github.hqn03.auth_service.cart.entity.CartItem;
+import github.hqn03.auth_service.common.helper.JsonUtils;
 import github.hqn03.auth_service.order.dto.OrderCreateRequest;
+import github.hqn03.auth_service.order.dto.OrderItemDto;
 import github.hqn03.auth_service.order.dto.OrderItemResponse;
 import github.hqn03.auth_service.order.dto.OrderResponse;
 import github.hqn03.auth_service.order.entity.Order;
 import github.hqn03.auth_service.order.entity.OrderItem;
-import github.hqn03.auth_service.sku.entity.Sku;
+import github.hqn03.auth_service.sku.repository.SkuRepository;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
-
-    @Mapping(target = "customerId", source = "customer.id")
-    OrderResponse toOrderResponse(Order order);
-
-    @Mapping(target = "productSlug", source = "sku.product.slug")
-    OrderItemResponse toOrderItemResponse(OrderItem orderItem);
-
-    Order toOrder(OrderCreateRequest orderCreateRequest);
-
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "originalPrice", source = "sku.price")
-    @Mapping(target = "productName", source = "sku.product.name")
-    @Mapping(target = "discountAmount", source = "sku.discountAmount")
-    @Mapping(target = "sku", source = "sku")
-    @Mapping(target = "quantity", source = "ci.quantity")
-    @Mapping(target = "price", source = "ci.price")
-    @Mapping(target = "subTotal", source = "ci.subTotal")
-    OrderItem toOrderItem(Sku sku, CartItem ci);
+    @Mapping(target = "order", ignore = true)
+    @Mapping(target = "productName", source = "name")
+    @Mapping(target = "skuCode", source = "skuCode")
+    OrderItem toOrderItem(OrderItemDto dto);
 }
+
+

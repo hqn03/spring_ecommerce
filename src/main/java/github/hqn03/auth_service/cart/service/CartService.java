@@ -1,21 +1,19 @@
 package github.hqn03.auth_service.cart.service;
 
-import github.hqn03.auth_service.cart.dto.*;
-import github.hqn03.auth_service.cart.entity.Cart;
-import github.hqn03.auth_service.cart.entity.CartItem;
-import github.hqn03.auth_service.cart.mapper.CartMapper;
-import github.hqn03.auth_service.cart.repository.CartItemRepository;
-import github.hqn03.auth_service.cart.repository.CartRepository;
-import github.hqn03.auth_service.common.exception.AppException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import github.hqn03.auth_service.cart.dto.CartItemDto;
+import github.hqn03.auth_service.cart.dto.CartResponse;
+import github.hqn03.auth_service.cart.dto.ItemAddRequest;
+import github.hqn03.auth_service.cart.dto.QuantityUpdateRequest;
 import github.hqn03.auth_service.common.exception.ResourceNotFoundException;
+import github.hqn03.auth_service.common.helper.JsonUtils;
 import github.hqn03.auth_service.common.service.RedisService;
-import github.hqn03.auth_service.customer.entity.Customer;
-import github.hqn03.auth_service.customer.repository.CustomerRepository;
+import github.hqn03.auth_service.product.entity.ProductImage;
 import github.hqn03.auth_service.security.SecurityService;
 import github.hqn03.auth_service.sku.entity.Sku;
 import github.hqn03.auth_service.sku.repository.SkuRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,211 +21,124 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CartService {
-    private final CartRepository cartRepository;
     private final SecurityService securityService;
-    private final CustomerRepository customerRepository;
-    private final CartMapper cartMapper;
-    private final CartItemRepository cartItemRepository;
     private final SkuRepository skuRepository;
-    private static final String CART_PREFIX = "cart:guest:";
-    private static final long TIMEOUT_IN_MINUTES = 10080; // 7 DAYS
     private final RedisService redisService;
+    private final JsonUtils jsonUtils;
 
-    private Cart addItemToDb(Long customerId, ItemAddRequest request) {
-        Cart cart = cartRepository.findByCustomerId(customerId)
-                .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setCustomerId(customerId);
-                    return cartRepository.save(newCart);
-                });
+    private static final String CART_PREFIX = "cart:";
+    private static final long TIMEOUT_IN_MINUTES = 10080; // 7 DAYS
 
-        Optional<CartItem> cartItem = cart.getItems().stream()
-                .filter(i -> i.getSku().getId().equals(request.skuId()))
-                .findFirst();
-
-        if (cartItem.isPresent()) {
-            CartItem item = cartItem.get();
-            item.setQuantity(item.getQuantity() + request.quantity());
-        } else {
-            Sku sku = skuRepository.getReferenceById(request.skuId());
-            CartItem item = new CartItem();
-            item.setSku(sku);
-            item.setQuantity(request.quantity());
-            item.setCart(cart);
-            cart.getItems().add(item);
-        }
-
-        return cartRepository.save(cart);
+    public String getCartKey(String sessionId){
+        Long userId = securityService.getUserId();
+        return userId != null ?
+                CART_PREFIX + "user:" + userId :
+                CART_PREFIX + "guest:" + sessionId;
     }
 
-    @Transactional
-    public CartSummaryResponse addItem(ItemAddRequest request, String sessionId) {
-        Long customerId = securityService.getCustomerId();
-        Integer total;
-        if (customerId != null) {
-            Cart cart = addItemToDb(customerId, request);
-            total = cart.getTotalItems();
-        } else {
-            String key = CART_PREFIX + sessionId;
-            redisService.hIncr(key, request.skuId().toString(), request.quantity(), TIMEOUT_IN_MINUTES);
-
-            Map<Object, Object> items = redisService.hGetAll(key);
-            total = items.values()
-                    .stream()
-                    .mapToInt(v -> Integer.parseInt(v.toString()))
-                    .sum();
-        }
-
-        return new CartSummaryResponse(total, "Add successfully");
-    }
-
-    public CartResponse getCartDetail(String sessionId) {
-        Long customerId = securityService.getCustomerId();
-
-        if (customerId != null) {
-            Cart cart = cartRepository.findByCustomerId(customerId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
-            return cartMapper.toCartResponse(cart);
-        }
-
-        return getGuestCartDetail(sessionId);
-    }
-
-    private CartResponse getGuestCartDetail(String sessionId) {
-        String key = CART_PREFIX + sessionId;
-        Map<Object, Object> redisItems = redisService.hGetAll(key);
-
-        if (redisItems == null || redisItems.isEmpty()) {
-            return new CartResponse(null, Collections.emptyList(), BigDecimal.ZERO, 0);
-        }
-
-        List<Long> skuIds = redisItems.keySet()
-                .stream()
-                .map(id -> Long.valueOf(id.toString()))
-                .toList();
-
-
-        List<Sku> skus = skuRepository.findAllByIdIn(skuIds);
-
-        List<ItemResponse> itemResponses = skus.stream().map(sku -> {
-            Integer quantity = Integer.valueOf(redisItems.get(sku.getId().toString()).toString());
-            return cartMapper.toItemResponse(sku, quantity);
-        }).toList();
-
-        BigDecimal totalPrice = itemResponses.stream()
-                .map(ItemResponse::subTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        Integer totalItems = itemResponses.stream()
-                .mapToInt(ItemResponse::quantity)
-                .sum();
-
-        return new CartResponse(null, itemResponses, totalPrice, totalItems);
-    }
-
-    @Transactional
-    public ItemResponse updateItemQuantity(QuantityUpdateRequest request, String sessionId) {
-        Long customerId = securityService.getCustomerId();
-
-        if (customerId != null) {
-            return updateItemInDb(customerId, request);
-        }
-
-        String key = CART_PREFIX + sessionId;
+    public Integer addItem(ItemAddRequest request, String sessionId) {
+        String key = getCartKey(sessionId);
         String field = request.skuId().toString();
 
-        redisService.hSet(key, field, request.quantity(), TIMEOUT_IN_MINUTES);
-
-        Sku sku = skuRepository.findById(request.skuId())
-                .orElseThrow(() -> new ResourceNotFoundException("Sku not found"));
-
-        return cartMapper.toItemResponse(sku, request.quantity());
+        Object json = redisService.hGet(key, field);
+        CartItemDto itemDto;
+        if(json != null){
+            itemDto = jsonUtils.deserialize(json.toString(), CartItemDto.class);
+            itemDto.setQuantity(itemDto.getQuantity() + request.quantity());
+        }else{
+            Sku sku = skuRepository.getReferenceById(request.skuId());
+            String thumbnailUrl = sku.getImages().stream()
+                    .filter(ProductImage::getIsMain)
+                    .findFirst()
+                    .or(() -> sku.getImages().stream().findFirst())
+                    .map(ProductImage::getImageUrl).orElse(null);
+            itemDto = CartItemDto.builder()
+                    .skuId(sku.getId())
+                    .name(sku.getProduct().getName())
+                    .price(sku.getPrice())
+                    .image(thumbnailUrl)
+                    .quantity(request.quantity())
+                    .build();
+        }
+        redisService.hSet(key, field, jsonUtils.serialize(itemDto), TIMEOUT_IN_MINUTES);
+        return redisService.hSize(key).intValue();
     }
 
-    private ItemResponse updateItemInDb(Long customerId, QuantityUpdateRequest request) {
-        Cart cart = cartRepository.findByCustomerId(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+    public CartResponse getCart(String sessionId) {
+        String key = getCartKey(sessionId);
+        Map<Object, Object> allItems = redisService.hGetAll(key);
 
-        CartItem item = cart.getItems()
-                .stream()
-                .filter(i -> i.getSku().getId().equals(request.skuId()))
-                .findFirst().orElseThrow(() -> new ResourceNotFoundException("Item not found in cart"));
+        if(allItems.isEmpty()){
+            return new CartResponse(Collections.emptyList(), BigDecimal.ZERO, 0);
+        }
 
-        item.setQuantity(request.quantity());
-        cartRepository.save(cart);
-        return cartMapper.toItemResponse(item.getSku(), request.quantity());
+        List<CartItemDto> items = allItems.values().stream()
+                .map(json -> jsonUtils.deserialize(json.toString(), CartItemDto.class))
+                .toList();
+
+        BigDecimal totalPrice = items.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new CartResponse(items, totalPrice, items.size());
     }
 
-    @Transactional
-    public void deleteItem(Long skuId, String sessionId) {
-        Long customerId = securityService.getCustomerId();
+    public CartItemDto updateQuantity(QuantityUpdateRequest request, String sessionId) {
+        String key = getCartKey(sessionId);
+        Object json = redisService.hGet(key, request.skuId().toString());
+        if (json == null) {
+            throw new ResourceNotFoundException("Item not found in cart");
+        }
+        CartItemDto itemDto = jsonUtils.deserialize(json.toString(), CartItemDto.class);
+        itemDto.setQuantity(request.quantity());
 
-        if (customerId != null) {
-            deleteItemInDb(customerId, skuId);
-        } else {
-            String key = CART_PREFIX + sessionId;
-            redisService.hDelete(key, skuId.toString());
+        redisService.hSet(key, request.skuId(), jsonUtils.serialize(itemDto), TIMEOUT_IN_MINUTES);
+        return itemDto;
+    }
 
+    public Integer deleteItem(Long skuId, String sessionId){
+        String key = getCartKey(sessionId);
+        String field = skuId.toString();
+
+        redisService.hDelete(key, field);
+        int remainingItems = redisService.hSize(key).intValue();
+        if(remainingItems == 0){
+            redisService.delete(key);
+        }else{
             redisService.expire(key, TIMEOUT_IN_MINUTES);
         }
+        return remainingItems;
     }
 
-    private void deleteItemInDb(Long customerId, Long skuId) {
-        Cart cart = cartRepository.findByCustomerId(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+    public void mergeCart(Long customerId, String sessionId){
+        String guestKey = CART_PREFIX + "guest:" + sessionId;
+        String userKey = CART_PREFIX + "user:" + customerId;
 
-        CartItem itemToRemove = cart.getItems().stream()
-                .filter(item -> item.getSku().getId().equals(skuId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Item not found in cart"));
+        Map<Object, Object> guestItems = redisService.hGetAll(guestKey);
+        if (guestItems == null || guestItems.isEmpty()) return;
 
-        cart.removeItem(itemToRemove);
+        guestItems.forEach((skuIdObj, guestJsonObj) -> {
+            String skuId = skuIdObj.toString();
+            CartItemDto guestItem = jsonUtils.deserialize(guestJsonObj.toString(), CartItemDto.class);
 
-        cartRepository.save(cart);
-    }
+            Object userJson = redisService.hGet(userKey, skuId);
 
-    @Transactional
-    public void mergeCart(Long customerId, String sessionId) {
-        String key = CART_PREFIX + sessionId;
-        Map<Object, Object> redisItems = redisService.hGetAll(key);
-
-        if (redisItems == null || redisItems.isEmpty()) return;
-
-        Cart cart = cartRepository.findByCustomerId(customerId).orElseGet(() -> {
-            Cart newCart = new Cart();
-            newCart.setCustomerId(customerId);
-            return newCart;
-        });
-        List<CartItem> dbItems = cart.getItems().stream().toList();
-
-        redisItems.forEach((skuIdObj, qtyObj) -> {
-            Long skuId = Long.parseLong(skuIdObj.toString());
-            Integer quantity = Integer.parseInt(qtyObj.toString());
-
-            Optional<CartItem> existingItem = dbItems.stream()
-                    .filter(item -> item.getSku().getId().equals(skuId))
-                    .findFirst();
-
-            if (existingItem.isPresent()) {
-                CartItem item = existingItem.get();
-                item.setQuantity(item.getQuantity() + quantity);
-            } else {
-                Sku sku = skuRepository.getReferenceById(skuId);
-                CartItem item = new CartItem();
-                item.setSku(sku);
-                item.setQuantity(quantity);
-                cart.addItem(item);
+            if(userJson != null){
+                CartItemDto userItem = jsonUtils.deserialize(userJson.toString(), CartItemDto.class);
+                userItem.setQuantity(userItem.getQuantity() + guestItem.getQuantity());
+                redisService.hSet(userKey, skuId, jsonUtils.serialize(userItem), TIMEOUT_IN_MINUTES);
+            }
+            else{
+                redisService.hSet(userKey, skuId, jsonUtils.serialize(guestItem), TIMEOUT_IN_MINUTES);
             }
         });
 
-        cartRepository.save(cart);
-        redisService.delete(key);
-
+        redisService.delete(guestKey);
     }
+
 }

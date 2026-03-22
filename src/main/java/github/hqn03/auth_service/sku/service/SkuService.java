@@ -1,9 +1,12 @@
 package github.hqn03.auth_service.sku.service;
 
+import github.hqn03.auth_service.common.constant.InventoryHistoryType;
 import github.hqn03.auth_service.common.exception.AppException;
 import github.hqn03.auth_service.common.exception.ResourceNotFoundException;
+import github.hqn03.auth_service.inventory.service.InventoryHistoryService;
 import github.hqn03.auth_service.product.entity.Product;
 import github.hqn03.auth_service.product.repository.ProductRepository;
+import github.hqn03.auth_service.product.service.ProductService;
 import github.hqn03.auth_service.sku.dto.SkuCreateRequest;
 import github.hqn03.auth_service.sku.dto.SkuDetailResponse;
 import github.hqn03.auth_service.sku.dto.SkuUpdateRequest;
@@ -16,13 +19,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class SkuService {
     private final SkuRepository skuRepository;
     private final SkuMapper skuMapper;
+    private final InventoryHistoryService inventoryHistoryService;
     private final ProductRepository productRepository;
+
+    public Optional<Sku> findById(Long id) {
+        return skuRepository.findById(id);
+    }
 
     @Transactional
     public SkuDetailResponse updateSku(Long id, SkuUpdateRequest request) {
@@ -35,10 +45,8 @@ public class SkuService {
         return skuMapper.toSkuDetailResponse(updated);
     }
 
-
-    @Transactional
     public SkuDetailResponse createSku(Long productId, SkuCreateRequest request) {
-        Product product = productRepository.getReferenceById(productId);
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product id not found"));
 
         if (skuRepository.existsByCode(request.code())) {
             throw new AppException("SKU code " + request.code() + " is already in use.", HttpStatus.BAD_REQUEST);
@@ -63,5 +71,16 @@ public class SkuService {
                 .orElseThrow(() -> new ResourceNotFoundException("Sku id not found"));
 
         skuRepository.delete(sku);
+    }
+
+    public void updateInventory(Long id, Integer delta) {
+        int rows = skuRepository.updateStock(id, delta);
+        if(rows == 0){
+            throw new AppException("Can not update inventory", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public List<Sku> getAllSkusById(List<Long> skuIds) {
+        return skuRepository.findAllById(skuIds);
     }
 }

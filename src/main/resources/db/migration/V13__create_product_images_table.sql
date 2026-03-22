@@ -12,7 +12,6 @@ CREATE TABLE product_images
 
     CONSTRAINT fk_img_product FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
     CONSTRAINT fk_img_sku FOREIGN KEY (sku_id) REFERENCES skus (id) ON DELETE CASCADE
-
 );
 
 CREATE INDEX idx_product_id ON product_images(product_id);

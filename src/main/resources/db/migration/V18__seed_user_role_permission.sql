@@ -29,7 +29,9 @@ INSERT INTO permissions (name, description) VALUES
 INSERT INTO roles (name, description) VALUES
 ('SUPER_ADMIN', 'System super administrator'),
 ('ADMIN', 'Administrator'),
-('USER', 'Normal user');
+('USER', 'Normal user'),
+('GUEST', 'Unauthenticated user ');
+
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id

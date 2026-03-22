@@ -4,10 +4,10 @@ CREATE TABLE products
     name        VARCHAR(255) NOT NULL,
     slug        VARCHAR(255) NOT NULL,
     description TEXT,
-    category_id INT,
+    category_id INT          NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP,
-    deleted  BOOLEAN DEFAULT 0,
+    deleted     BOOLEAN   DEFAULT 0,
 
     CONSTRAINT unique_slug UNIQUE (slug),
     CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES categories (id)

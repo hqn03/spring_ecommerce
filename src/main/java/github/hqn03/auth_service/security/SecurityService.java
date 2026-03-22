@@ -1,5 +1,6 @@
 package github.hqn03.auth_service.security;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,19 +18,10 @@ public class SecurityService {
 
     public Long getUserId() {
         Authentication auth = getAuth();
-        if(!(auth.getPrincipal() instanceof JwtPrincipal)) return null;
-        return Long.valueOf(((JwtPrincipal) auth.getPrincipal()).userId());
-    }
-
-    public Long getCustomerId(){
-        Authentication auth = getAuth();
-        if(!(auth.getPrincipal() instanceof JwtPrincipal)) return null;
-        return Long.valueOf(((JwtPrincipal) auth.getPrincipal()).customerId());
-    }
-
-    public String getUsername() {
-        Authentication auth = getAuth();
-        return (auth != null) ? auth.getName() : null;
+        if(auth instanceof AnonymousAuthenticationToken){
+            return null;
+        }
+        return Long.valueOf(auth.getPrincipal().toString());
     }
 
     public Set<String> getScopes() {

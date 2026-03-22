@@ -2,11 +2,9 @@ package github.hqn03.auth_service.user.entity;
 
 import github.hqn03.auth_service.auth.entity.Role;
 import github.hqn03.auth_service.common.entity.BaseEntity;
-import github.hqn03.auth_service.customer.entity.Customer;
+import github.hqn03.auth_service.order.entity.Order;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -14,15 +12,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @SQLRestriction("deleted_at = 0")
 @SQLDelete(sql = "UPDATE users SET deleted_at = UNIX_TIMESTAMP(NOW(3)) * 1000 WHERE id = ?")
 public class User extends BaseEntity implements UserDetails {
@@ -32,6 +30,12 @@ public class User extends BaseEntity implements UserDetails {
 
     @Column(nullable = false)
     private String username;
+
+    private String fullName;
+
+    private String address;
+
+    private String phone;
 
     @Column(nullable = false)
     private String email;
@@ -53,8 +57,8 @@ public class User extends BaseEntity implements UserDetails {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @OneToOne(mappedBy = "user")
-    private Customer customer;
+    @OneToMany(fetch =  FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Order> orders = new ArrayList<>();
 
     @Column(nullable = false)
     private Long deletedAt = 0L;
@@ -95,9 +99,6 @@ public class User extends BaseEntity implements UserDetails {
     }
 
     public void addRole(Role role) {
-        if (this.roles == null) {
-            this.roles = new HashSet<>();
-        }
         this.roles.add(role);
     }
 }

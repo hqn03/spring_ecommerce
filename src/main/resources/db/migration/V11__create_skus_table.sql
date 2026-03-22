@@ -2,9 +2,9 @@ CREATE TABLE skus
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id       BIGINT         NOT NULL,
-    color_id         INT,
-    size_id          INT,
-    code         VARCHAR(50)    NOT NULL,
+    color_id         INT            NOT NULL,
+    size_id          INT            NOT NULL,
+    code             VARCHAR(50)    NOT NULL,
     price            DECIMAL(15, 2) NOT NULL DEFAULT 0,
     stock_qty        INT            NOT NULL DEFAULT 0,
     discount_percent INT            NOT NULL DEFAULT 0,

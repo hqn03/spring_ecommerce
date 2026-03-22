@@ -4,7 +4,6 @@ import github.hqn03.auth_service.inventory.dto.InventoryHistoryResponse;
 import github.hqn03.auth_service.inventory.entity.InventoryHistory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring")
 public interface InventoryMapper {

@@ -1,7 +1,7 @@
 CREATE TABLE orders
 (
     id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
-    customer_id        BIGINT         NOT NULL,
+    user_id            BIGINT         NOT NULL,
     order_code         VARCHAR(50)    NOT NULL,
     order_date         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_amount       DECIMAL(15, 2) NOT NULL,
@@ -14,5 +14,5 @@ CREATE TABLE orders
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers (id)
+    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users (id)
 );

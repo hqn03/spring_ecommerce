@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             Jwt jwt = jwtDecoder.decode(token);
 
-            JwtPrincipal principal = new JwtPrincipal(jwt.getSubject(),  jwt.getClaim("customer").toString());
+            String userId = jwt.getSubject();
 
             String scope = jwt.getClaim("scope");
             List<SimpleGrantedAuthority> authorities = (scope == null || scope.isBlank())
@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     .map(SimpleGrantedAuthority::new)
                     .toList();
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (BadJwtException ex) {
             log.error(ex.getMessage());

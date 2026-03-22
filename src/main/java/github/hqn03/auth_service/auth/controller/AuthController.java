@@ -1,9 +1,7 @@
 package github.hqn03.auth_service.auth.controller;
 
 import github.hqn03.auth_service.auth.dto.auth.LoginRequest;
-import github.hqn03.auth_service.auth.dto.auth.LoginResponse;
 import github.hqn03.auth_service.auth.dto.auth.RegisterRequest;
-import github.hqn03.auth_service.auth.dto.auth.RegisterResponse;
 import github.hqn03.auth_service.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

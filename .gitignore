@@ -34,3 +34,4 @@ build/
 
 ###Docker Mysql###
 docker-mysql
+.env

@@ -37,6 +37,10 @@ public class RoleService {
         return roleRepository.findByName("USER").orElseThrow(() -> new ResourceNotFoundException("Role not found"));
     }
 
+    public Role getRoleGuest() {
+        return roleRepository.findByName("GUEST").orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+    }
+
     public List<RoleResponse> getAll() {
         return roleRepository.findAll()
                 .stream()

@@ -28,21 +28,31 @@ public class RedisService {
         redisTemplate.expire(key, timeoutInMinutes, TimeUnit.MINUTES);
     }
 
-    public void hIncr(String key, String field, long delta, long timeoutInMinutes) {
-        redisTemplate.opsForHash().increment(key, field, delta);
-        redisTemplate.expire(key, timeoutInMinutes, TimeUnit.MINUTES);
+    public Object hGet(String key, Object field) {
+        return redisTemplate.opsForHash().get(key, field);
     }
 
-    public void hSet(String key, String field, Object value, long timeoutInMinutes) {
+    public void hSet(String key, Object field, Object value, long timeoutInMinutes) {
         redisTemplate.opsForHash().put(key, field, value);
         redisTemplate.expire(key, timeoutInMinutes, TimeUnit.MINUTES);
     }
 
-    public void hDelete(String key, String field){
+    public void hDelete(String key, Object... field){
         redisTemplate.opsForHash().delete(key, field);
     }
 
     public Map<Object, Object> hGetAll(String key) {
         return redisTemplate.opsForHash().entries(key);
     }
+
+    public void hSetAll(String key, Map<Object, Object> map, long timeoutInMinutes) {
+        redisTemplate.opsForHash().putAll(key, map);
+
+        redisTemplate.expire(key, timeoutInMinutes, TimeUnit.MINUTES);
+    }
+
+    public Long hSize(String key) {
+        return redisTemplate.opsForHash().size(key);
+    }
+
 }

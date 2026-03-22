@@ -1,10 +1,7 @@
 package github.hqn03.auth_service.auth.service;
 
 import github.hqn03.auth_service.auth.dto.auth.LoginRequest;
-import github.hqn03.auth_service.auth.dto.auth.LoginResponse;
 import github.hqn03.auth_service.auth.dto.auth.RegisterRequest;
-import github.hqn03.auth_service.auth.dto.auth.RegisterResponse;
-import github.hqn03.auth_service.auth.entity.VerificationToken;
 import github.hqn03.auth_service.cart.service.CartService;
 import github.hqn03.auth_service.common.exception.AppException;
 import github.hqn03.auth_service.common.service.RedisService;
@@ -12,7 +9,6 @@ import github.hqn03.auth_service.user.entity.User;
 import github.hqn03.auth_service.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -61,12 +57,7 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(authToken);
         User user = (User) authentication.getPrincipal();
 
-        boolean isCustomer = user.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"));
-
-        if(isCustomer){
-            cartService.mergeCart(user.getCustomer().getId(), sessionId);
-        }
+        cartService.mergeCart(user.getId(), sessionId);
 
         return generateToken(user);
     }
@@ -94,7 +85,7 @@ public class AuthService {
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
 
 
-        var claimsBuilder = JwtClaimsSet.builder()
+        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
                 .issuer("dev-service")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
@@ -102,15 +93,10 @@ public class AuthService {
                 .claim("scope", scope)
                 .claim("jti", UUID.randomUUID().toString())
                 .claim("iat", Instant.now().getEpochSecond())
-                .claim("nbf", Instant.now().getEpochSecond());
+                .claim("nbf", Instant.now().getEpochSecond())
+                .build();
 
-        if (user.getCustomer() != null) {
-            claimsBuilder.claim("customer", user.getCustomer().getId());
-        }
-
-        JwtClaimsSet claims = claimsBuilder.build();
-
-        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
 
     public void forgotPassword() {

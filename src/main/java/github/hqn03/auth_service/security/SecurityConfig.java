@@ -52,8 +52,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**",
                                 "/api/carts/**",
+                                "/api/v1/payments/**",
+                                "/api/v1/orders/checkout",
+//                                "/error",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**").permitAll()
+                                "/v3/api-docs/**",
+                                "favicon.ico"
+                        ).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
